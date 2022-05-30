@@ -104,7 +104,7 @@ func Test_handler_Expand(t *testing.T) {
 			defer ctrl.Finish()
 
 			serviceMock := mock.NewMockservice(ctrl)
-			serviceMock.EXPECT().Expand(tt.shortcut).Return(tt.url)
+			serviceMock.EXPECT().Expand(tt.shortcut).Return(tt.url, nil)
 
 			httpHandler := New(serviceMock)
 

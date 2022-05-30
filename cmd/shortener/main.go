@@ -7,6 +7,8 @@ import (
 	repositoryURL "github.com/ChristinaFomenko/URLShortener/internal/app/repository/urls"
 	serviceURL "github.com/ChristinaFomenko/URLShortener/internal/app/service/urls"
 	"github.com/ChristinaFomenko/URLShortener/internal/handlers"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"log"
 	"net/http"
 )
@@ -20,12 +22,18 @@ func main() {
 	service := serviceURL.NewService(repository, helper, configs.HTTPHost())
 
 	// Route
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", handlers.New(service).Shorten)
-	mux.HandleFunc("/{id}", handlers.New(service).Expand)
+	router := chi.NewRouter()
+	router.Use(middleware.RequestID)
+	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
+	router.Use(middleware.URLFormat)
 
+	router.Route("/", func(r chi.Router) {
+		r.Post("/", handlers.New(service).Shorten)
+		r.Get("/{id}", handlers.New(service).Expand)
+	})
 	port := configs.HTTPPort()
 
 	fmt.Println("Server running at http://localhost:8080")
-	log.Fatal(http.ListenAndServe(port, mux))
+	log.Fatal(http.ListenAndServe(port, router))
 }

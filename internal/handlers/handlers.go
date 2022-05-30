@@ -3,10 +3,10 @@
 package handlers
 
 import (
+	"github.com/go-chi/chi/v5"
 	"io"
 	"log"
 	"net/http"
-	"strings"
 )
 
 type service interface {
@@ -52,7 +52,7 @@ func (h *handler) Expand(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 	}
 
-	id := strings.TrimPrefix(r.URL.Path, "id")
+	id := chi.URLParam(r, "id")
 	if id == "" {
 		http.Error(w, "id parameter is empty", http.StatusBadRequest)
 		return
