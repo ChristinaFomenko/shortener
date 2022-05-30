@@ -1,3 +1,5 @@
+//go:generate mockgen -source=urls.go -destination=mocks/mocks.go
+
 package urls
 
 import (
