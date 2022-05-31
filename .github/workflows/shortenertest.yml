@@ -44,7 +44,7 @@ jobs:
 
       - name: Build server binary
         run: |
-          cd cmd/shortener
+          cd cmd/URLShortener
           go build -o shortener
 
       - name: "Code increment #1"
