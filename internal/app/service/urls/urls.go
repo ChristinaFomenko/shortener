@@ -4,7 +4,7 @@ package urls
 
 import (
 	"fmt"
-	"log"
+	log "github.com/sirupsen/logrus"
 )
 
 type urlRepository interface {
@@ -45,7 +45,7 @@ func (s *service) Shorten(url string) string {
 func (s *service) Expand(id string) (string, error) {
 	url, err := s.repository.Get(id)
 	if err != nil {
-		log.Fatalf("get url error %v", err)
+		log.WithError(err).WithField("id", id).Error("get url error")
 		return "", err
 	}
 

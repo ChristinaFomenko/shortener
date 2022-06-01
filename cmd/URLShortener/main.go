@@ -28,10 +28,10 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
-	router.Route("/", func(r chi.Router) {
-		r.Post("/", handlers.New(service).Shorten)
-		r.Get("/{id}", handlers.New(service).Expand)
-	})
+	//router.Route("/", func(r chi.Router) {
+	router.Post("/", handlers.New(service).Shorten)
+	router.Get("/{id}", handlers.New(service).Expand)
+	//})
 	port := configs.HTTPPort()
 
 	fmt.Println("Server running at http://localhost:8080")
