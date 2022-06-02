@@ -1,7 +1,8 @@
-package helpers
+package generator
 
 import (
 	"math/rand"
+	"time"
 )
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -19,9 +20,10 @@ func (g *generator) ID() string {
 }
 
 func generate(n int) string {
+	rand.Seed(time.Now().UnixNano())
 	bytes := make([]byte, n)
 	for i := range bytes {
-		bytes[i] = letterBytes[rand.Int63()%int64(len(letterBytes))]
+		bytes[i] = letterBytes[rand.Intn(len(letterBytes))]
 	}
 	return string(bytes)
 }

@@ -1,5 +1,3 @@
-//go:generate mockgen -source=urls.go -destination=mocks/mocks.go
-
 package urls
 
 import (
@@ -7,13 +5,15 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+//go:generate mockgen -source=urls.go -destination=mocks/mocks.go
+
 type urlRepository interface {
 	Add(id, url string)
 	Get(id string) (string, error)
 }
 
 type generator interface {
-	ID() string
+	GenerateID() string
 }
 
 type service struct {
@@ -34,7 +34,7 @@ func NewService(
 }
 
 func (s *service) Shorten(url string) string {
-	id := s.generator.ID()
+	id := s.generator.GenerateID()
 	s.repository.Add(id, url)
 
 	return fmt.Sprintf("%s/%s", s.host, id)

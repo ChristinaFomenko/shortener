@@ -1,5 +1,3 @@
-//go:generate mockgen -source=handlers.go -destination=mocks/mocks.go
-
 package handlers
 
 import (
@@ -8,6 +6,8 @@ import (
 	"log"
 	"net/http"
 )
+
+//go:generate mockgen -source=handlers.go -destination=mocks/mocks.go
 
 type service interface {
 	Shorten(url string) string
@@ -26,10 +26,6 @@ func New(service service) *handler {
 
 // Shorten Cut URL
 func (h *handler) Shorten(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-	}
-
 	bytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
@@ -48,10 +44,6 @@ func (h *handler) Shorten(w http.ResponseWriter, r *http.Request) {
 
 // Expand Returns full URL by ID of shorted one
 func (h *handler) Expand(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-	}
-
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		http.Error(w, "id parameter is empty", http.StatusBadRequest)
@@ -64,6 +56,5 @@ func (h *handler) Expand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Location", url)
-	w.WriteHeader(http.StatusTemporaryRedirect)
+	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 }
