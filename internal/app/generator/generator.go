@@ -14,7 +14,7 @@ func NewGenerator() *generator {
 	return &generator{}
 }
 
-func (g *generator) ID() string {
+func (g *generator) GenerateID() string {
 	return generate(10)
 
 }
