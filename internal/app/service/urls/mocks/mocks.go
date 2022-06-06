@@ -83,16 +83,16 @@ func (m *Mockgenerator) EXPECT() *MockgeneratorMockRecorder {
 	return m.recorder
 }
 
-// ID mocks base method.
-func (m *Mockgenerator) ID() string {
+// GenerateID mocks base method.
+func (m *Mockgenerator) GenerateID() string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ID")
+	ret := m.ctrl.Call(m, "GenerateID")
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
-// ID indicates an expected call of ID.
-func (mr *MockgeneratorMockRecorder) ID() *gomock.Call {
+// GenerateID indicates an expected call of GenerateID.
+func (mr *MockgeneratorMockRecorder) GenerateID() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ID", reflect.TypeOf((*Mockgenerator)(nil).ID))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateID", reflect.TypeOf((*Mockgenerator)(nil).GenerateID))
 }

@@ -32,7 +32,7 @@ func TestShorten(t *testing.T) {
 
 	for _, tt := range tests {
 		generatorMock := mocks.NewMockgenerator(ctrl)
-		generatorMock.EXPECT().ID().Return(tt.id)
+		generatorMock.EXPECT().GenerateID().Return(tt.id)
 
 		repoMock := mocks.NewMockurlRepository(ctrl)
 		repoMock.EXPECT().Add(tt.id, tt.url)
