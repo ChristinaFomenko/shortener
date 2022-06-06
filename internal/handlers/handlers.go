@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"github.com/go-chi/chi/v5"
+	log "github.com/sirupsen/logrus"
 	"io"
-	"log"
 	"net/http"
 )
 
@@ -28,7 +28,8 @@ func New(service service) *handler {
 func (h *handler) Shorten(w http.ResponseWriter, r *http.Request) {
 	bytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		log.Error(err)
+		http.Error(w, "failed to validate struct", 400)
 	}
 
 	shortcut := h.service.Shorten(string(bytes))
@@ -37,7 +38,7 @@ func (h *handler) Shorten(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	_, err = w.Write([]byte(shortcut))
 	if err != nil {
-		log.Printf("Write response error %v", err)
+		log.WithError(err).WithField("shortcut", shortcut).Error("write response error")
 		return
 	}
 }
