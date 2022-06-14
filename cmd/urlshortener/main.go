@@ -30,6 +30,7 @@ func main() {
 	//router.Route("/", func(r chi.Router) {
 	router.Post("/", handlers.New(service).Shorten)
 	router.Get("/{id}", handlers.New(service).Expand)
+	router.Post("/api/shorten", handlers.New(service).APIShortener)
 	//})
 	port := configs.HTTPPort()
 

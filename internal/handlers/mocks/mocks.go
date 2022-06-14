@@ -33,6 +33,21 @@ func (m *Mockservice) EXPECT() *MockserviceMockRecorder {
 	return m.recorder
 }
 
+// APIShortener mocks base method.
+func (m *Mockservice) APIShortener(url string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "APIShortener", url)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// APIShortener indicates an expected call of APIShortener.
+func (mr *MockserviceMockRecorder) APIShortener(url interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "APIShortener", reflect.TypeOf((*Mockservice)(nil).APIShortener), url)
+}
+
 // Expand mocks base method.
 func (m *Mockservice) Expand(id string) (string, error) {
 	m.ctrl.T.Helper()
