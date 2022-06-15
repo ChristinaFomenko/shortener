@@ -51,7 +51,7 @@ jobs:
         if: always()
         run: |
           shortenertest -test.v -test.run=^TestIteration1$ \
-              -binary-path=cmd/urlshortener/shortener
+              -binary-path=cmd/shortener/shortener
 
       - name: "Code increment #2"
         if: always()
@@ -68,7 +68,7 @@ jobs:
         run: |
           shortenertest -test.v -test.run=^TestIteration4$ \
               -source-path=. \
-              -binary-path=cmd/urlshortener/shortener
+              -binary-path=cmd/shortener/shortener
 
       - name: "Code increment #5"
         if: always()
@@ -76,7 +76,7 @@ jobs:
           SERVER_HOST=$(random domain)
           SERVER_PORT=$(random unused-port)
           shortenertest -test.v -test.run=^TestIteration5$ \
-              -binary-path=cmd/urlshortener/shortener \
+              -binary-path=cmd/shortener/shortener \
               -server-host=$SERVER_HOST \
               -server-port=$SERVER_PORT \
               -server-base-url="http://$SERVER_HOST:$SERVER_PORT"
@@ -87,7 +87,7 @@ jobs:
           SERVER_PORT=$(random unused-port)
           TEMP_FILE=$(random tempfile)
           shortenertest -test.v -test.run=^TestIteration6$ \
-              -binary-path=cmd/urlshortener/shortener \
+              -binary-path=cmd/shortener/shortener \
               -server-port=$SERVER_PORT \
               -file-storage-path=$TEMP_FILE \
               -source-path=.
@@ -98,7 +98,7 @@ jobs:
           SERVER_PORT=$(random unused-port)
           TEMP_FILE=$(random tempfile)
           shortenertest -test.v -test.run=^TestIteration7$ \
-              -binary-path=cmd/urlshortener/shortener \
+              -binary-path=cmd/shortener/shortener \
               -server-port=$SERVER_PORT \
               -file-storage-path=$TEMP_FILE \
               -source-path=.
@@ -108,47 +108,47 @@ jobs:
         run: |
           shortenertest -test.v -test.run=^TestIteration8$ \
               -source-path=. \
-              -binary-path=cmd/urlshortener/shortener
+              -binary-path=cmd/shortener/shortener
 
       - name: "Code increment #9"
         if: always()
         run: |
           shortenertest -test.v -test.run=^TestIteration9$ \
               -source-path=. \
-              -binary-path=cmd/urlshortener/shortener
+              -binary-path=cmd/shortener/shortener
 
       - name: "Code increment #10"
         if: always()
         run: |
           shortenertest -test.v -test.run=^TestIteration10$ \
               -source-path=. \
-              -binary-path=cmd/urlshortener/shortener \
+              -binary-path=cmd/shortener/shortener \
               -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable'
 
       - name: "Code increment #11"
         if: always()
         run: |
           shortenertest -test.v -test.run=^TestIteration11$ \
-              -binary-path=cmd/urlshortener/shortener \
+              -binary-path=cmd/shortener/shortener \
               -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable'
 
       - name: "Code increment #12"
         if: always()
         run: |
           shortenertest -test.v -test.run=^TestIteration12$ \
-              -binary-path=cmd/urlshortener/shortener \
+              -binary-path=cmd/shortener/shortener \
               -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable'
 
       - name: "Code increment #13"
         if: always()
         run: |
           shortenertest -test.v -test.run=^TestIteration13$ \
-              -binary-path=cmd/urlshortener/shortener \
+              -binary-path=cmd/shortener/shortener \
               -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable'
 
       - name: "Code increment #14"
         if: always()
         run: |
           shortenertest -test.v -test.run=^TestIteration14$ \
-              -binary-path=cmd/urlshortener/shortener \
+              -binary-path=cmd/shortener/shortener \
               -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable'
