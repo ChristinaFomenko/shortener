@@ -2,11 +2,11 @@ package handlers
 
 import (
 	"bytes"
-	"io"
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -75,79 +75,61 @@ func TestShortenHandler(t *testing.T) {
 	}
 }
 
-func TestAPIShorten(t *testing.T) {
-	type want struct {
-		contentType string
-		body        string
-		statusCode  int
+const (
+	shortURLDomain = "http://localhost:8080"
+	longURL        = "https://www.yandex.ru/practicum"
+)
+
+func TestAPIShortenerHandler_Shorten_ShouldReturnBadRequestWhenShortenRequestIsNotContainsValidJSON(t *testing.T) {
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+	mockShortenerService := mock.NewMockservice(controller)
+	mockShortenerService.EXPECT().APIShortener(gomock.Any()).Return("", nil).Times(0)
+
+	handler := handler{
+		service: mockShortenerService,
 	}
-	testCases := []struct {
-		name    string
-		body    string
-		request string
-		want    want
-	}{
-		{
-			name:    "#1 Valid request",
-			body:    `{"url" : "http://shetube.com"}`,
-			request: "/api/shorten",
-			want: want{
-				contentType: "application/json",
-				body:        `{"result":"http://localhost:8080/"}`,
-				statusCode:  http.StatusCreated,
-			},
-		},
-		{
-			name:    "#2 Invalid url",
-			body:    `{"url" : "hetube.com"}`,
-			request: "/api/shorten",
-			want: want{
-				contentType: "text/plain; charset=utf-8",
-				body:        "Wrong URL",
-				statusCode:  http.StatusBadRequest,
-			},
-		},
-		{
-			name:    "#3 Invalid json",
-			body:    "{url : http://wetube.com}",
-			request: "/api/shorten",
-			want: want{
-				contentType: "text/plain; charset=utf-8",
-				body:        "Bad request",
-				statusCode:  http.StatusBadRequest,
-			},
-		},
+	resp := httptest.NewRecorder()
+
+	req := httptest.NewRequest(http.MethodPost, "/api/shorten", bytes.NewReader([]byte(`invalid json`)))
+
+	handler.APIJSONShortener(resp, req)
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
+}
+
+func TestAPIShortenerHandler_Shorten_ShouldReturnInternalServerErrorWhenShortenerServiceReturnsError(t *testing.T) {
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+	mockShortenerService := mock.NewMockservice(controller)
+	mockShortenerService.EXPECT().APIShortener(gomock.Any()).Return("", errors.New("service error")).Times(1)
+
+	handler := handler{
+		service: mockShortenerService,
 	}
+	resp := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/api/shorten", bytes.NewReader([]byte(fmt.Sprintf(`{"url": "%s"}`, longURL)))) //
 
-	for _, tt := range testCases {
-		t.Run(tt.name, func(t *testing.T) {
+	handler.APIJSONShortener(resp, req)
 
-			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
+	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+}
 
-			serviceMock := mock.NewMockservice(ctrl)
-			serviceMock.EXPECT().APIShortener(tt.name).Return(tt.want)
+func TestAPIShortenerHandler_Shorten_ShortenedURL(t *testing.T) {
+	expectedShortenedURL := fmt.Sprintf(`{"result":"%s/tTeEsT"}`, shortURLDomain)
+	shortenedURL := shortURLDomain + "/tTeEsT"
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+	mockShortenerService := mock.NewMockservice(controller)
+	mockShortenerService.EXPECT().APIShortener(gomock.Any()).Return(shortenedURL, nil).Times(1)
 
-			httpHandler := New(serviceMock)
-
-			buffer := new(bytes.Buffer)
-			buffer.WriteString(tt.body)
-			request := httptest.NewRequest(http.MethodPost, tt.request, buffer)
-
-			writer := httptest.NewRecorder()
-			HandlerFunc := http.HandlerFunc(httpHandler.APIShortener)
-			HandlerFunc.ServeHTTP(writer, request)
-			result := writer.Result()
-			defer result.Body.Close()
-			assert.Equal(t, tt.want.statusCode, result.StatusCode)
-			assert.Equal(t, tt.want.contentType, result.Header.Get("Content-Type"))
-			body, err := io.ReadAll(result.Body)
-			require.NoError(t, err)
-			if result.StatusCode == http.StatusCreated {
-				assert.JSONEq(t, tt.want.body, string(body))
-			} else {
-				assert.Equal(t, tt.want.body, strings.TrimSpace(string(body)))
-			}
-		})
+	handler := handler{
+		service: mockShortenerService,
 	}
+	resp := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/api/shorten", bytes.NewReader([]byte(fmt.Sprintf(`{"url": "%s"}`, longURL))))
+
+	handler.APIJSONShortener(resp, req)
+
+	assert.Equal(t, http.StatusCreated, resp.Code)
+	assert.Equal(t, expectedShortenedURL, resp.Body.String())
 }
