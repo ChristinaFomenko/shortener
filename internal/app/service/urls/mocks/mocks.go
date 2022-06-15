@@ -60,6 +60,21 @@ func (mr *MockurlRepositoryMockRecorder) Get(id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockurlRepository)(nil).Get), id)
 }
 
+// Post mocks base method.
+func (m *MockurlRepository) Post(url string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Post", url)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Post indicates an expected call of Post.
+func (mr *MockurlRepositoryMockRecorder) Post(url interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Post", reflect.TypeOf((*MockurlRepository)(nil).Post), url)
+}
+
 // Mockgenerator is a mock of generator interface.
 type Mockgenerator struct {
 	ctrl     *gomock.Controller
