@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
+	goccy "github.com/goccy/go-json"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
@@ -95,7 +96,7 @@ func (h *handler) APIJSONShortener(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) json(w http.ResponseWriter, statusCode int, data interface{}) {
-	resp, _ := json.Marshal(data)
+	resp, _ := goccy.Marshal(data)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
