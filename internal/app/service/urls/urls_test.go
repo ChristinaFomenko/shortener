@@ -2,13 +2,12 @@ package urls
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
-	mocks "github.com/ChristinaFomenko/URLShortener/internal/app/service/urls/mocks"
+	mocks "github.com/ChristinaFomenko/shortener/internal/app/service/urls/mocks"
 )
 
 const host = "http://localhost:8080"
@@ -82,33 +81,55 @@ func TestExpand(t *testing.T) {
 }
 
 func Test_service_APIShortener(t *testing.T) {
-	type fields struct {
-		repository urlRepository
-		generator  generator
-		host       string
+	//type fields struct {
+	//	repository urlRepository
+	//	generator  generator
+	//	host       string
+	//}
+	//type args struct {
+	//	id string
+	//}
+	//tests := []struct {
+	//	Name   string `json:"name,omitempty"`
+	//	Fields fields `json:"fields"`
+	//	Args    args                      `json:"args"`
+	//	Want    string                    `json:"want,omitempty"`
+	//	WantErr assert.ErrorAssertionFunc `json:"want_err,omitempty"`
+	//}{
+	//	{
+	//		Name:     "success",
+	//		Args:       "abcde",
+	//		url:      "yandex.ru",
+	//		shortcut: "http://localhost:8080/abcde",
+	//	},
+	//}
+	tests := []struct {
+		name     string
+		id       string
+		url      string
+		shortcut string
+	}{
+		{
+			name:     "success",
+			id:       "abcde",
+			url:      "yandex.ru",
+			shortcut: "http://localhost:8080/abcde",
+		},
 	}
-	type args struct {
-		id string
-	}
-	var tests []struct {
-		name    string
-		fields  fields
-		args    args
-		want    string
-		wantErr assert.ErrorAssertionFunc
-	}
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &service{
-				repository: tt.fields.repository,
-				generator:  tt.fields.generator,
-				host:       tt.fields.host,
-			}
-			got, err := s.APIShortener(tt.args.id)
-			if !tt.wantErr(t, err, fmt.Sprintf("APIShortener(%v)", tt.args.id)) {
-				return
-			}
-			assert.Equalf(t, tt.want, got, "APIShortener(%v)", tt.args.id)
-		})
+		generatorMock := mocks.NewMockgenerator(ctrl)
+		generatorMock.EXPECT().GenerateID().Return(tt.id)
+
+		repoMock := mocks.NewMockurlRepository(ctrl)
+		repoMock.EXPECT().Post(tt.id)
+
+		s := NewService(repoMock, generatorMock, host)
+		act, _ := s.APIShortener(tt.url)
+
+		assert.Equal(t, tt.shortcut, act)
 	}
 }

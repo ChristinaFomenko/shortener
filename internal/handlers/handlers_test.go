@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	mock "github.com/ChristinaFomenko/URLShortener/internal/handlers/mocks"
+	mock "github.com/ChristinaFomenko/shortener/internal/handlers/mocks"
 )
 
 func TestShortenHandler(t *testing.T) {

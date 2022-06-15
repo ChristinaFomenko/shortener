@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/ChristinaFomenko/URLShortener/internal/app/generator"
-	repositoryURL "github.com/ChristinaFomenko/URLShortener/internal/app/repository/urls"
-	serviceURL "github.com/ChristinaFomenko/URLShortener/internal/app/service/urls"
-	"github.com/ChristinaFomenko/URLShortener/internal/handlers"
+	"github.com/ChristinaFomenko/shortener/internal/app/generator"
+	repositoryURL "github.com/ChristinaFomenko/shortener/internal/app/repository/urls"
+	serviceURL "github.com/ChristinaFomenko/shortener/internal/app/service/urls"
+	"github.com/ChristinaFomenko/shortener/internal/handlers"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"log"

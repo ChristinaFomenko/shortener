@@ -10,7 +10,7 @@ import (
 type urlRepository interface {
 	Add(id, url string)
 	Get(id string) (string, error)
-	Post(url string) (string, error)
+	Post(id string) (string, error)
 }
 
 type generator interface {
@@ -54,15 +54,11 @@ func (s *service) Expand(id string) (string, error) {
 }
 
 func (s *service) APIShortener(id string) (string, error) {
-	url, err := s.repository.Get(id)
+	post, err := s.repository.Post(id)
 	if err != nil {
 		log.WithError(err).WithField("id", id).Error("api shortener url error")
 		return "", err
 	}
-	post, err := s.repository.Post(url)
-	if err != nil {
-		return "", err
-	}
 
-	return fmt.Sprintf("%s/%s", post, url), nil
+	return fmt.Sprintf("%s/%s", post, id), nil
 }
