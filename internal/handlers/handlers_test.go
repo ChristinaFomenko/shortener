@@ -71,6 +71,7 @@ func TestShortenHandler(t *testing.T) {
 			require.NoError(t, err)
 
 			assert.Equal(t, tt.want.shortcut, string(bodyResult))
+			assert.JSONEq(t, tt.want.shortcut, string(bodyResult))
 		})
 	}
 }
@@ -132,4 +133,5 @@ func TestAPIShortenerHandler_Shorten_ShortenedURL(t *testing.T) {
 
 	assert.Equal(t, http.StatusCreated, resp.Code)
 	assert.Equal(t, expectedShortenedURL, resp.Body.String())
+	assert.JSONEq(t, expectedShortenedURL, resp.Body.String())
 }

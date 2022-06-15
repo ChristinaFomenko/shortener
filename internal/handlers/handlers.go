@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"github.com/go-chi/chi/v5"
 	goccy "github.com/goccy/go-json"
 	log "github.com/sirupsen/logrus"
@@ -80,7 +79,7 @@ type ShortenResponse struct {
 
 func (h *handler) APIJSONShortener(w http.ResponseWriter, r *http.Request) {
 	var sr ShortenRequest
-	err := json.NewDecoder(r.Body).Decode(&sr)
+	err := goccy.NewDecoder(r.Body).Decode(&sr)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
