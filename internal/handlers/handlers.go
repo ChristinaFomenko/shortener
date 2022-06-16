@@ -86,7 +86,7 @@ func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 
-	resp := ShortenReply{ShortenUrlResult: shortcut}
+	resp := ShortenReply{ShortenURLResult: shortcut}
 	marshal, err := json.Marshal(&resp)
 	if err != nil {
 		log.WithError(err).WithField("resp", resp).Error("marshal response error")

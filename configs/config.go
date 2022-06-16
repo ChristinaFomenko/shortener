@@ -12,10 +12,10 @@ func ServerAddress() string {
 }
 
 func BaseURL() string {
-	host := os.Getenv("BASE_URL")
-	if host == "" {
-		host = "http://localhost:8080"
+	url := os.Getenv("BASE_URL")
+	if url == "" {
+		url = "http://localhost:8080"
 	}
 
-	return host
+	return url
 }
