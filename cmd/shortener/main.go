@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/ChristinaFomenko/shortener/configs"
 	"github.com/ChristinaFomenko/shortener/internal/app/generator"
 	repositoryURL "github.com/ChristinaFomenko/shortener/internal/app/repository/urls"
@@ -19,14 +18,14 @@ var Cfg configs.Config
 
 func main() {
 	if err := env.Parse(&Cfg); err != nil {
-		fmt.Println("failed:", err)
+		log.Fatal("failed parse configs:", err)
 	}
 	// Repositories
 	repository := repositoryURL.NewRepo()
 
 	// Services
 	helper := generator.NewGenerator()
-	service := serviceURL.NewService(repository, helper, Cfg.BaseUrl)
+	service := serviceURL.NewService(repository, helper, Cfg.BaseURL)
 
 	// Route
 	router := chi.NewRouter()
@@ -43,7 +42,7 @@ func main() {
 
 	//address := configs.ServerAddress()
 	//log.WithField("address", address).Info("server starts")
-	u, err := url.Parse(Cfg.BaseUrl)
+	u, err := url.Parse(Cfg.BaseURL)
 	if err != nil {
 		log.Error(err)
 	}
