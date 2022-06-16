@@ -8,7 +8,7 @@ import (
 	"github.com/ChristinaFomenko/shortener/internal/handlers"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -32,8 +32,7 @@ func main() {
 	router.Get("/{id}", handlers.New(service).Expand)
 	router.Post("/api/shorten", handlers.New(service).APIJSONShorten)
 	//})
-	port := configs.ServerAddress()
-
-	log.Println("Server running at http://localhost:8080")
-	log.Fatal(http.ListenAndServe(port, router))
+	address := configs.ServerAddress()
+	log.WithField("address", address).Info("server starts")
+	log.Fatal(http.ListenAndServe(address, router))
 }
