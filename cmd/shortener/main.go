@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"github.com/ChristinaFomenko/shortener/configs"
 	"github.com/ChristinaFomenko/shortener/internal/app/generator"
 	repositoryURL "github.com/ChristinaFomenko/shortener/internal/app/repository/urls"
@@ -16,7 +17,20 @@ import (
 
 var Cfg configs.Config
 
+type serviceParams struct {
+	ServerAddress   *int
+	BaseURL         *string
+	FileStoragePath *string
+}
+
 func main() {
+	serviceParamsObj := &serviceParams{}
+
+	serviceParamsObj.ServerAddress = flag.Int("a", 8080, "port")
+	serviceParamsObj.BaseURL = flag.String("b", "http://localhost:8080", "base url")
+	serviceParamsObj.FileStoragePath = flag.String("f", "http://localhost:8080", "file path")
+	flag.Parse()
+
 	if err := env.Parse(&Cfg); err != nil {
 		log.Fatal("failed parse configs:", err)
 	}
@@ -46,6 +60,6 @@ func main() {
 	if err != nil {
 		log.Error(err)
 	}
-	log.WithField("address", Cfg.ServerAddress).Info("server starts")
+	log.WithField("address", *serviceParamsObj.ServerAddress).Info("server starts")
 	log.Fatal(http.ListenAndServe(u.Host, router), nil)
 }
