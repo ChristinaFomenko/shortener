@@ -12,20 +12,7 @@ import (
 	"net/http"
 )
 
-//func init() {
-//	// loads values from .env into the system
-//	if err := godotenv.Load(); err != nil {
-//		log.Print("No .env file found")
-//	}
-//}
-//
-//type Config struct {
-//	ServerAddress string `env:"SERVER_ADDRESS"`
-//	BaseURL       string `env:"BASE_URL"`
-//}
-
 func main() {
-
 	// Repositories
 	repository := repositoryURL.NewRepo()
 
