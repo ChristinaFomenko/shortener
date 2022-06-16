@@ -14,7 +14,6 @@ import (
 type service interface {
 	Shorten(url string) string
 	Expand(id string) (string, error)
-	APIShortener(url string) (string, error)
 }
 
 type handler struct {
