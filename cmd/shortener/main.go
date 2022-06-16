@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/ChristinaFomenko/shortener/configs"
 	"github.com/ChristinaFomenko/shortener/internal/app/generator"
 	repositoryURL "github.com/ChristinaFomenko/shortener/internal/app/repository/urls"
 	serviceURL "github.com/ChristinaFomenko/shortener/internal/app/service/urls"
@@ -9,7 +10,6 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"log"
 	"net/http"
-	"os"
 )
 
 //func init() {
@@ -26,20 +26,12 @@ import (
 
 func main() {
 
-	serverAddress := os.Getenv("SERVER_ADDRESS")
-	baseURL := os.Getenv("BASE_URL")
-	//var cfg Config
-	//err := env.Parse(&cfg)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-
 	// Repositories
 	repository := repositoryURL.NewRepo()
 
 	// Services
 	helper := generator.NewGenerator()
-	service := serviceURL.NewService(repository, helper, baseURL)
+	service := serviceURL.NewService(repository, helper, configs.BaseURL())
 
 	// Route
 	router := chi.NewRouter()
@@ -53,8 +45,8 @@ func main() {
 	router.Get("/{id}", handlers.New(service).Expand)
 	router.Post("/api/shorten", handlers.New(service).APIJSONShortener)
 	//})
-	//port := configs.HTTPPort()
+	port := configs.ServerAddress()
 
 	log.Println("Server running at http://localhost:8080")
-	log.Fatal(http.ListenAndServe(serverAddress, router))
+	log.Fatal(http.ListenAndServe(port, router))
 }
