@@ -1,21 +1,15 @@
 package handlers
 
 import (
+	"encoding/json"
+	"github.com/asaskevich/govalidator"
 	"github.com/go-chi/chi/v5"
-	goccy "github.com/goccy/go-json"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 )
 
 //go:generate mockgen -source=handlers.go -destination=mocks/mocks.go
-
-type Request struct {
-	URL string `json:"url"`
-}
-type Result struct {
-	Result string `json:"result"`
-}
 
 type service interface {
 	Shorten(url string) string
@@ -69,35 +63,41 @@ func (h *handler) Expand(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 }
 
-type ShortenRequest struct {
-	URL string `json:"url"`
-}
-
-type ShortenResponse struct {
-	Result string `json:"result"`
-}
-
-func (h *handler) APIJSONShortener(w http.ResponseWriter, r *http.Request) {
-	var sr ShortenRequest
-	err := goccy.NewDecoder(r.Body).Decode(&sr)
+func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
+	b, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), 500)
 		return
 	}
 
-	shortURL, err := h.service.APIShortener(sr.URL)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	req := ShortenRequest{}
+	if err = json.Unmarshal(b, &req); err != nil {
+		http.Error(w, "request in not valid", http.StatusBadRequest)
 		return
 	}
 
-	h.json(w, http.StatusCreated, &ShortenResponse{Result: shortURL})
-}
+	ok, err := govalidator.ValidateStruct(req)
+	if err != nil || !ok {
+		http.Error(w, "request in not valid", http.StatusBadRequest)
+		return
+	}
 
-func (h *handler) json(w http.ResponseWriter, statusCode int, data interface{}) {
-	resp, _ := goccy.Marshal(data)
+	shortcut := h.service.Shorten(req.URL)
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
-	_, _ = w.Write(resp)
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	resp := ShortenReply{ShortenUrlResult: shortcut}
+	marshal, err := json.Marshal(&resp)
+	if err != nil {
+		log.WithError(err).WithField("resp", resp).Error("marshal response error")
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	_, err = w.Write(marshal)
+	if err != nil {
+		log.WithError(err).WithField("shortcut", shortcut).Error("write response error")
+		return
+	}
 }

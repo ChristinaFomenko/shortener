@@ -8,8 +8,8 @@ require (
 )
 
 require (
+	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/go-chi/chi/v5 v5.0.7
-	github.com/goccy/go-json v0.9.7
 	github.com/sirupsen/logrus v1.8.1
 )
 

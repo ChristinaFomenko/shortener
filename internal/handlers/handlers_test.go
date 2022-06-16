@@ -2,8 +2,6 @@ package handlers
 
 import (
 	"bytes"
-	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -71,67 +69,6 @@ func TestShortenHandler(t *testing.T) {
 			require.NoError(t, err)
 
 			assert.Equal(t, tt.want.shortcut, string(bodyResult))
-			assert.JSONEq(t, tt.want.shortcut, string(bodyResult))
 		})
 	}
-}
-
-const (
-	shortURLDomain = "http://localhost:8080"
-	longURL        = "https://www.yandex.ru/practicum"
-)
-
-func TestAPIShortenerHandler_Shorten_ShouldReturnBadRequestWhenShortenRequestIsNotContainsValidJSON(t *testing.T) {
-	controller := gomock.NewController(t)
-	defer controller.Finish()
-	mockShortenerService := mock.NewMockservice(controller)
-	mockShortenerService.EXPECT().APIShortener(gomock.Any()).Return("", nil).Times(0)
-
-	handler := handler{
-		service: mockShortenerService,
-	}
-	resp := httptest.NewRecorder()
-
-	req := httptest.NewRequest(http.MethodPost, "/api/shorten", bytes.NewReader([]byte(`invalid json`)))
-
-	handler.APIJSONShortener(resp, req)
-	assert.Equal(t, http.StatusBadRequest, resp.Code)
-}
-
-func TestAPIShortenerHandler_Shorten_ShouldReturnInternalServerErrorWhenShortenerServiceReturnsError(t *testing.T) {
-	controller := gomock.NewController(t)
-	defer controller.Finish()
-	mockShortenerService := mock.NewMockservice(controller)
-	mockShortenerService.EXPECT().APIShortener(gomock.Any()).Return("", errors.New("service error")).Times(1)
-
-	handler := handler{
-		service: mockShortenerService,
-	}
-	resp := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, "/api/shorten", bytes.NewReader([]byte(fmt.Sprintf(`{"url": "%s"}`, longURL)))) //
-
-	handler.APIJSONShortener(resp, req)
-
-	assert.Equal(t, http.StatusInternalServerError, resp.Code)
-}
-
-func TestAPIShortenerHandler_Shorten_ShortenedURL(t *testing.T) {
-	expectedShortenedURL := fmt.Sprintf(`{"result":"%s/tTeEsT"}`, shortURLDomain)
-	shortenedURL := shortURLDomain + "/tTeEsT"
-	controller := gomock.NewController(t)
-	defer controller.Finish()
-	mockShortenerService := mock.NewMockservice(controller)
-	mockShortenerService.EXPECT().APIShortener(gomock.Any()).Return(shortenedURL, nil).Times(1)
-
-	handler := handler{
-		service: mockShortenerService,
-	}
-	resp := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, "/api/shorten", bytes.NewReader([]byte(fmt.Sprintf(`{"url": "%s"}`, longURL))))
-
-	handler.APIJSONShortener(resp, req)
-
-	assert.Equal(t, http.StatusCreated, resp.Code)
-	assert.Equal(t, expectedShortenedURL, resp.Body.String())
-	assert.JSONEq(t, expectedShortenedURL, resp.Body.String())
 }

@@ -36,15 +36,3 @@ func (r *repository) Get(id string) (string, error) {
 
 	return url, nil
 }
-
-func (r *repository) Post(id string) (string, error) {
-	r.ma.Lock()
-	defer r.ma.Unlock()
-
-	url, ok := r.store[id]
-	if !ok {
-		return "", errors.New("url not found")
-	}
-
-	return url, nil
-}
