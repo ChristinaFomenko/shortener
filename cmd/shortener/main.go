@@ -27,8 +27,8 @@ func main() {
 	serviceParamsObj := &serviceParams{}
 
 	serviceParamsObj.ServerAddress = flag.Int("a", 8080, "port")
-	serviceParamsObj.BaseURL = flag.String("b", "http://localhost:8080", "base url")
-	serviceParamsObj.FileStoragePath = flag.String("f", "http://localhost:8080", "file path")
+	//serviceParamsObj.BaseURL = flag.String("b", "http://localhost:8080", "base url")
+	//serviceParamsObj.FileStoragePath = flag.String("f", "http://localhost:8080", "file path")
 	flag.Parse()
 
 	if err := env.Parse(&Cfg); err != nil {
