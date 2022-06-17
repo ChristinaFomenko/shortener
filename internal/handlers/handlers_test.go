@@ -26,6 +26,7 @@ func TestShortenHandler(t *testing.T) {
 		url      string
 		shortcut string
 		want     want
+		err      error
 	}{
 		{
 			name:     "success",
@@ -37,6 +38,7 @@ func TestShortenHandler(t *testing.T) {
 				shortcut:    "http://localhost:8080/abcde",
 			},
 			request: "/",
+			err:     nil,
 		},
 	}
 	for _, tt := range tests {
@@ -45,7 +47,7 @@ func TestShortenHandler(t *testing.T) {
 			defer ctrl.Finish()
 
 			serviceMock := mock.NewMockservice(ctrl)
-			serviceMock.EXPECT().Shorten(tt.url).Return(tt.shortcut)
+			serviceMock.EXPECT().Shorten(tt.url).Return(tt.shortcut, nil)
 
 			httpHandler := New(serviceMock)
 
@@ -86,6 +88,7 @@ func TestAPIJSONShorten_Success(t *testing.T) {
 		body     string
 		shortcut string
 		want     want
+		err      error
 	}{
 		{
 			name:     "success",
@@ -98,6 +101,7 @@ func TestAPIJSONShorten_Success(t *testing.T) {
 				response:    "{\"result\":\"http://localhost:8080/abcde\"}",
 			},
 			request: "/api/shorten",
+			err:     nil,
 		},
 	}
 	for _, tt := range tests {
@@ -106,7 +110,7 @@ func TestAPIJSONShorten_Success(t *testing.T) {
 			defer ctrl.Finish()
 
 			serviceMock := mock.NewMockservice(ctrl)
-			serviceMock.EXPECT().Shorten(tt.url).Return(tt.shortcut)
+			serviceMock.EXPECT().Shorten(tt.url).Return(tt.shortcut, tt.err)
 
 			httpHandler := New(serviceMock)
 

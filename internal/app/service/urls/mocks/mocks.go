@@ -34,9 +34,11 @@ func (m *MockurlRepository) EXPECT() *MockurlRepositoryMockRecorder {
 }
 
 // Add mocks base method.
-func (m *MockurlRepository) Add(id, url string) {
+func (m *MockurlRepository) Add(id, url string) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Add", id, url)
+	ret := m.ctrl.Call(m, "Add", id, url)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Add indicates an expected call of Add.
