@@ -35,7 +35,7 @@ func main() {
 		log.Fatal("failed parse configs:", err)
 	}
 	// Repositories
-	repository := repositoryURL.NewRepo()
+	repository := repositoryURL.Storage(configs.FileStoragePath())
 
 	// Services
 	helper := generator.NewGenerator()
