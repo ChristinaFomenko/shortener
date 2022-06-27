@@ -39,7 +39,7 @@ func (h *handler) Shorten(w http.ResponseWriter, r *http.Request) {
 	shortcut, err := h.service.Shorten(url)
 	if err != nil {
 		log.WithError(err).WithField("url", url).Error("shorten url error")
-		http.Error(w, err.Error(), 500)
+		http.Error(w, "url shortcut", http.StatusInternalServerError)
 		return
 	}
 

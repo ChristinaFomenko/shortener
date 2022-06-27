@@ -14,12 +14,14 @@ import (
 )
 
 func main() {
+	// Config
+	cfg, _ := configs.NewConfig()
 	// Repositories
-	repository := repositoryURL.Storage(configs.FileStoragePath())
+	repository, _ := repositoryURL.NewStorage(cfg.FileStoragePath)
 
 	// Services
 	helper := generator.NewGenerator()
-	service := serviceURL.NewService(repository, helper, configs.BaseURL())
+	service := serviceURL.NewService(repository, helper, cfg.BaseURL)
 
 	// Route
 	router := chi.NewRouter()
@@ -27,8 +29,7 @@ func main() {
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
-	router.Use(middlewares.Compressing)
-	router.Use(middlewares.Decompressing)
+	router.Use(middlewares.GZIPMiddleware)
 
 	//router.Route("/", func(r chi.Router) {
 	router.Post("/", handlers.New(service).Shorten)
@@ -36,7 +37,7 @@ func main() {
 	router.Post("/api/shorten", handlers.New(service).APIJSONShorten)
 	//})
 
-	address := configs.ServerAddress()
+	address := cfg.ServerAddress
 	log.WithField("address", address).Info("server starts")
 	log.Fatal(http.ListenAndServe(address, router), nil)
 }

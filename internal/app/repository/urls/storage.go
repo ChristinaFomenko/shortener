@@ -10,15 +10,15 @@ type Repo interface {
 	Get(id string) (string, error)
 }
 
-func Storage(filePath string) Repo {
+func NewStorage(filePath string) (Repo, error) {
 	if filePath != "" {
 		r, err := file.NewRepo(filePath)
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 
-		return r
+		return r, nil
 	}
 
-	return memory.NewRepo()
+	return memory.NewRepo(), nil
 }
