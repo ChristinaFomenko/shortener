@@ -27,7 +27,7 @@ func GZIPMiddleware(next http.Handler) http.Handler {
 		if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
 			reader, err := gzip.NewReader(r.Body)
 			if err != nil {
-				log.Printf("Cannot decompress request: %v\n", err)
+				log.Infof("Cannot decompress request: %v\n", err)
 				next.ServeHTTP(w, r)
 				return
 			}
@@ -37,7 +37,7 @@ func GZIPMiddleware(next http.Handler) http.Handler {
 
 		gz, err := gzip.NewWriterLevel(w, gzip.BestSpeed)
 		if err != nil {
-			log.Printf("Compress error: %v\n", err)
+			log.Infof("Compress error: %v\n", err)
 			next.ServeHTTP(w, r)
 			return
 		}
