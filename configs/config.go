@@ -16,6 +16,7 @@ func NewConfig() (*appConfig, error) {
 	serverAddress := getServerAddress()
 	baseURL := getBaseURL()
 	fileStoragePath := getFileStoragePath()
+	flag.Parse()
 
 	if serverAddress == nil {
 		return nil, errors.New("server address not specified")
