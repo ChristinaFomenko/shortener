@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	mock "github.com/ChristinaFomenko/URLShortener/internal/handlers/mocks"
+	mock "github.com/ChristinaFomenko/shortener/internal/handlers/mocks"
 )
 
 func TestShortenHandler(t *testing.T) {
@@ -26,6 +26,7 @@ func TestShortenHandler(t *testing.T) {
 		url      string
 		shortcut string
 		want     want
+		err      error
 	}{
 		{
 			name:     "success",
@@ -37,6 +38,7 @@ func TestShortenHandler(t *testing.T) {
 				shortcut:    "http://localhost:8080/abcde",
 			},
 			request: "/",
+			err:     nil,
 		},
 	}
 	for _, tt := range tests {
@@ -45,7 +47,7 @@ func TestShortenHandler(t *testing.T) {
 			defer ctrl.Finish()
 
 			serviceMock := mock.NewMockservice(ctrl)
-			serviceMock.EXPECT().Shorten(tt.url).Return(tt.shortcut)
+			serviceMock.EXPECT().Shorten(tt.url).Return(tt.shortcut, nil)
 
 			httpHandler := New(serviceMock)
 
@@ -69,6 +71,139 @@ func TestShortenHandler(t *testing.T) {
 			require.NoError(t, err)
 
 			assert.Equal(t, tt.want.shortcut, string(bodyResult))
+		})
+	}
+}
+
+func TestAPIJSONShorten_Success(t *testing.T) {
+	type want struct {
+		contentType string
+		statusCode  int
+		response    string
+	}
+	tests := []struct {
+		name     string
+		request  string
+		url      string
+		body     string
+		shortcut string
+		want     want
+		err      error
+	}{
+		{
+			name:     "success",
+			url:      "https://yandex.ru",
+			body:     "{\"url\":\"https://yandex.ru\"}",
+			shortcut: "http://localhost:8080/abcde",
+			want: want{
+				contentType: "application/json",
+				statusCode:  201,
+				response:    "{\"result\":\"http://localhost:8080/abcde\"}",
+			},
+			request: "/api/shorten",
+			err:     nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			serviceMock := mock.NewMockservice(ctrl)
+			serviceMock.EXPECT().Shorten(tt.url).Return(tt.shortcut, tt.err)
+
+			httpHandler := New(serviceMock)
+
+			buffer := new(bytes.Buffer)
+			buffer.WriteString(tt.body)
+			request := httptest.NewRequest(http.MethodPost, tt.request, buffer)
+
+			writer := httptest.NewRecorder()
+			handlerFunc := http.HandlerFunc(httpHandler.APIJSONShorten)
+			handlerFunc.ServeHTTP(writer, request)
+			result := writer.Result()
+
+			assert.Equal(t, tt.want.statusCode, result.StatusCode)
+			assert.Equal(t, tt.want.contentType, result.Header.Get("Content-Type"))
+
+			bodyResult, err := ioutil.ReadAll(result.Body)
+			require.NoError(t, err)
+			err = result.Body.Close()
+			require.NoError(t, err)
+
+			require.NoError(t, err)
+
+			assert.Equal(t, tt.want.response, string(bodyResult))
+		})
+	}
+}
+
+func TestAPIJSONShorten_BadRequest(t *testing.T) {
+	type want struct {
+		contentType string
+		statusCode  int
+		response    string
+	}
+	tests := []struct {
+		name     string
+		request  string
+		url      string
+		body     string
+		shortcut string
+		want     want
+	}{
+		{
+			name:     "bad-request",
+			url:      "https://yandex.ru",
+			body:     "{\"url\":\"\"}",
+			shortcut: "http://localhost:8080/abcde",
+			want: want{
+				contentType: "text/plain; charset=utf-8",
+				statusCode:  400,
+				response:    "request in not valid\n",
+			},
+			request: "/api/shorten",
+		},
+		{
+			name:     "bad-request",
+			url:      "https://yandex.ru",
+			body:     "{\"url\":\"qwerty\"}",
+			shortcut: "http://localhost:8080/abcde",
+			want: want{
+				contentType: "text/plain; charset=utf-8",
+				statusCode:  400,
+				response:    "request in not valid\n",
+			},
+			request: "/api/shorten",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			httpHandler := New(nil)
+
+			buffer := new(bytes.Buffer)
+			buffer.WriteString(tt.body)
+			request := httptest.NewRequest(http.MethodPost, tt.request, buffer)
+
+			writer := httptest.NewRecorder()
+			handlerFunc := http.HandlerFunc(httpHandler.APIJSONShorten)
+			handlerFunc.ServeHTTP(writer, request)
+			result := writer.Result()
+
+			assert.Equal(t, tt.want.statusCode, result.StatusCode)
+			assert.Equal(t, tt.want.contentType, result.Header.Get("Content-Type"))
+
+			bodyResult, err := ioutil.ReadAll(result.Body)
+			require.NoError(t, err)
+			err = result.Body.Close()
+			require.NoError(t, err)
+
+			require.NoError(t, err)
+
+			assert.Equal(t, tt.want.response, string(bodyResult))
 		})
 	}
 }

@@ -1,4 +1,4 @@
-package urls
+package memory
 
 import (
 	"errors"
@@ -17,11 +17,12 @@ func NewRepo() *repository {
 }
 
 // Add URL
-func (r *repository) Add(id, url string) {
+func (r *repository) Add(id, url string) error {
 	r.ma.Lock()
 	defer r.ma.Unlock()
 
 	r.store[id] = url
+	return nil
 }
 
 // Get URL

@@ -49,11 +49,12 @@ func (mr *MockserviceMockRecorder) Expand(id interface{}) *gomock.Call {
 }
 
 // Shorten mocks base method.
-func (m *Mockservice) Shorten(url string) string {
+func (m *Mockservice) Shorten(url string) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Shorten", url)
 	ret0, _ := ret[0].(string)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Shorten indicates an expected call of Shorten.
