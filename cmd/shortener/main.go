@@ -7,6 +7,7 @@ import (
 	serviceURL "github.com/ChristinaFomenko/shortener/internal/app/service/urls"
 	"github.com/ChristinaFomenko/shortener/internal/handlers"
 	"github.com/ChristinaFomenko/shortener/internal/middlewares"
+	"github.com/caarlos0/env"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	log "github.com/sirupsen/logrus"
@@ -15,10 +16,16 @@ import (
 
 func main() {
 	// Config
-	cfg, _ := configs.NewConfig()
-	// Repositories
-	repository, _ := repositoryURL.NewStorage(cfg.FileStoragePath)
+	cfg, err := configs.NewConfig()
+	if err = env.Parse(cfg); err != nil {
+		log.Fatalf("failed to retrieve env variables, %v", err)
+	}
 
+	// Repositories
+	repository, err := repositoryURL.NewStorage(cfg.FileStoragePath)
+	if err != nil {
+		log.Fatalf("failed to create a storage %v", err)
+	}
 	// Services
 	helper := generator.NewGenerator()
 	service := serviceURL.NewService(repository, helper, cfg.BaseURL)
