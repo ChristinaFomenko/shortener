@@ -14,6 +14,8 @@ import (
 	"net/http"
 )
 
+var cookieAuth *middlewares.CookieAuth
+
 func main() {
 	// Config
 	cfg, err := configs.NewConfig()
@@ -31,6 +33,8 @@ func main() {
 	helper := generator.NewGenerator()
 	service := serviceURL.NewService(repository, helper, cfg.BaseURL)
 
+	cookieAuth = middlewares.New([]byte(cfg.AuthKey), "UserID")
+
 	// Route
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
@@ -43,6 +47,7 @@ func main() {
 	router.Post("/", handlers.New(service).Shorten)
 	router.Get("/{id}", handlers.New(service).Expand)
 	router.Post("/api/shorten", handlers.New(service).APIJSONShorten)
+	router.Get("/api/user/urls", handlers.New(service).GetUserUrls)
 	//})
 
 	address := cfg.ServerAddress

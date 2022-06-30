@@ -7,9 +7,10 @@ import (
 )
 
 type appConfig struct {
-	ServerAddress   string `env:"SERVER_ADDRESS"`
-	BaseURL         string `env:"BASE_URL"`
-	FileStoragePath string `env:"FILE_STORAGE_PATH"`
+	ServerAddress   string `env:"SERVER_ADDRESS" envDefault:":8080"`
+	BaseURL         string `env:"BASE_URL" envDefault:"http://localhost:8080"`
+	FileStoragePath string `env:"FILE_STORAGE_PATH" envDefault:"./storage.json"`
+	AuthKey         string `env:"AUTH_KEY" envDefault:"auth"`
 }
 
 func NewConfig() (*appConfig, error) {

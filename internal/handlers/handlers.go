@@ -112,3 +112,31 @@ func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (h *handler) GetUserUrls(w http.ResponseWriter, r *http.Request) {
+	//	w.Header().Set("Content-Type", "application/json")
+	//
+	//	ctx := r.Context()
+	//
+	//	userID := ctx.Value("auth").(int)
+	//
+	//	urls := db.GetUserUrls(userID)
+	//
+	//	if len(urls) == 0 {
+	//		w.WriteHeader(http.StatusNoContent)
+	//	}
+	//
+	//	body, err := json.Marshal(urls)
+	//	if err != nil {
+	//		fmt.Println(err)
+	//		http.Error(w, err.Error(), http.StatusInternalServerError)
+	//	}
+	//	_, err = w.Write(body)
+	//	if err != nil {
+	//		fmt.Println(err)
+	//		http.Error(w, err.Error(), http.StatusInternalServerError)
+	//	}
+	//
+	//	w.WriteHeader(http.StatusOK)
+	//
+}
