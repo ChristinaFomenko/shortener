@@ -8,6 +8,7 @@ import (
 type Repo interface {
 	Add(id, url string) error
 	Get(id string) (string, error)
+	GetByUser(userID string) (string, error)
 }
 
 func NewStorage(filePath string) (Repo, error) {

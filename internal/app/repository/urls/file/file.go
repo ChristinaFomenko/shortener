@@ -15,6 +15,23 @@ type fileRepository struct {
 	filePath string
 }
 
+func (r *fileRepository) GetByUser(userID string) (string, error) {
+	r.ma.RLock()
+	defer r.ma.RUnlock()
+
+	user, ok := r.store[userID]
+	if !ok {
+		return "", errors.New("url not found")
+	}
+
+	return user, nil
+}
+
+type UserURL struct {
+	ShortURL    string `json:"short_url"`
+	OriginalURL string `json:"original_url"`
+}
+
 func NewRepo(filePath string) (*fileRepository, error) {
 	store, err := readLines(filePath)
 	if err != nil {

@@ -37,3 +37,15 @@ func (r *repository) Get(id string) (string, error) {
 
 	return url, nil
 }
+
+func (r *repository) GetByUser(userID string) (string, error) {
+	r.ma.Lock()
+	defer r.ma.Unlock()
+
+	user, ok := r.store[userID]
+	if !ok {
+		return "", errors.New("user not found")
+	}
+
+	return user, nil
+}

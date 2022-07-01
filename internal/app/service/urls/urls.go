@@ -10,6 +10,7 @@ import (
 type urlRepository interface {
 	Add(id, url string) error
 	Get(id string) (string, error)
+	GetByUser(userID string) (string, error)
 }
 
 type generator interface {
@@ -20,6 +21,16 @@ type service struct {
 	repository urlRepository
 	generator  generator
 	host       string
+}
+
+func (s *service) GetByUsers(UserID string) (string, error) {
+	user, err := s.repository.GetByUser(UserID)
+	if err != nil {
+		log.WithError(err).WithField("userID", UserID).Error("get user ID error")
+		return "", err
+	}
+
+	return user, nil
 }
 
 func NewService(

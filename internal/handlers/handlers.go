@@ -14,6 +14,7 @@ import (
 type service interface {
 	Shorten(url string) (string, error)
 	Expand(id string) (string, error)
+	GetByUsers(UserID string) (string, error)
 }
 
 type handler struct {
@@ -114,29 +115,33 @@ func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) GetUserUrls(w http.ResponseWriter, r *http.Request) {
-	//	w.Header().Set("Content-Type", "application/json")
-	//
-	//	ctx := r.Context()
-	//
-	//	userID := ctx.Value("auth").(int)
-	//
-	//	urls := db.GetUserUrls(userID)
-	//
-	//	if len(urls) == 0 {
-	//		w.WriteHeader(http.StatusNoContent)
-	//	}
-	//
-	//	body, err := json.Marshal(urls)
-	//	if err != nil {
-	//		fmt.Println(err)
-	//		http.Error(w, err.Error(), http.StatusInternalServerError)
-	//	}
-	//	_, err = w.Write(body)
-	//	if err != nil {
-	//		fmt.Println(err)
-	//		http.Error(w, err.Error(), http.StatusInternalServerError)
-	//	}
-	//
-	//	w.WriteHeader(http.StatusOK)
-	//
+	idCookie, err := r.Cookie("user_id")
+	w.Header().Set("Content-Type", "application/json")
+
+	req := ResponseEntity{}
+
+	urls, err := h.service.GetByUsers(idCookie.Value)
+	if err != nil {
+		log.WithError(err).WithField("url", req.OriginalURL).Error("original url error")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if len(urls) == 0 {
+		w.WriteHeader(http.StatusNoContent)
+	}
+
+	resp := ResponseEntity{OriginalURL: urls}
+	body, err := json.Marshal(&resp)
+	if err != nil {
+		log.WithError(err).WithField("resp", urls).Error("marshal urls response error")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	_, err = w.Write(body)
+	if err != nil {
+		log.WithError(err).WithField("shortcut", urls).Error("write response error")
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
