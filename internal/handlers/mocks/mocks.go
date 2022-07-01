@@ -48,6 +48,21 @@ func (mr *MockserviceMockRecorder) Expand(id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Expand", reflect.TypeOf((*Mockservice)(nil).Expand), id)
 }
 
+// GetByUsers mocks base method.
+func (m *Mockservice) GetByUsers(UserID string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByUsers", UserID)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByUsers indicates an expected call of GetByUsers.
+func (mr *MockserviceMockRecorder) GetByUsers(UserID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUsers", reflect.TypeOf((*Mockservice)(nil).GetByUsers), UserID)
+}
+
 // Shorten mocks base method.
 func (m *Mockservice) Shorten(url string) (string, error) {
 	m.ctrl.T.Helper()

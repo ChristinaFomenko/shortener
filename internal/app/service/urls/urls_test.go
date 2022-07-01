@@ -2,6 +2,7 @@ package urls
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -86,5 +87,37 @@ func TestExpand(t *testing.T) {
 
 		assert.Equal(t, tt.err, err)
 		assert.Equal(t, tt.url, act)
+	}
+}
+
+func Test_service_GetByUsers(t *testing.T) {
+	type fields struct {
+		repository urlRepository
+		generator  generator
+		host       string
+	}
+	type args struct {
+		UserID string
+	}
+	var tests []struct {
+		name    string
+		fields  fields
+		args    args
+		want    string
+		wantErr assert.ErrorAssertionFunc
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &service{
+				repository: tt.fields.repository,
+				generator:  tt.fields.generator,
+				host:       tt.fields.host,
+			}
+			got, err := s.GetByUsers(tt.args.UserID)
+			if !tt.wantErr(t, err, fmt.Sprintf("GetByUsers(%v)", tt.args.UserID)) {
+				return
+			}
+			assert.Equalf(t, tt.want, got, "GetByUsers(%v)", tt.args.UserID)
+		})
 	}
 }

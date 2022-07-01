@@ -62,6 +62,21 @@ func (mr *MockurlRepositoryMockRecorder) Get(id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockurlRepository)(nil).Get), id)
 }
 
+// GetByUser mocks base method.
+func (m *MockurlRepository) GetByUser(userID string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByUser", userID)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByUser indicates an expected call of GetByUser.
+func (mr *MockurlRepositoryMockRecorder) GetByUser(userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUser", reflect.TypeOf((*MockurlRepository)(nil).GetByUser), userID)
+}
+
 // Mockgenerator is a mock of generator interface.
 type Mockgenerator struct {
 	ctrl     *gomock.Controller

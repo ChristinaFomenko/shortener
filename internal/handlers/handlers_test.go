@@ -207,3 +207,26 @@ func TestAPIJSONShorten_BadRequest(t *testing.T) {
 		})
 	}
 }
+
+func Test_handler_GetUserUrls(t *testing.T) {
+	type fields struct {
+		service service
+	}
+	type args struct {
+		w http.ResponseWriter
+		r *http.Request
+	}
+	var tests []struct {
+		name   string
+		fields fields
+		args   args
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := &handler{
+				service: tt.fields.service,
+			}
+			h.GetUserUrls(tt.args.w, tt.args.r)
+		})
+	}
+}
