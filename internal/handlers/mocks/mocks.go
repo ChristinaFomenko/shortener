@@ -48,19 +48,33 @@ func (mr *MockserviceMockRecorder) Expand(id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Expand", reflect.TypeOf((*Mockservice)(nil).Expand), id)
 }
 
-// GetByUsers mocks base method.
-func (m *Mockservice) GetByUsers(UserID string) (string, error) {
+// GetByUserID mocks base method.
+func (m *Mockservice) GetByUserID(UserID string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByUsers", UserID)
+	ret := m.ctrl.Call(m, "GetByUserID", UserID)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetByUsers indicates an expected call of GetByUsers.
-func (mr *MockserviceMockRecorder) GetByUsers(UserID interface{}) *gomock.Call {
+// GetByUserID indicates an expected call of GetByUserID.
+func (mr *MockserviceMockRecorder) GetByUserID(UserID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUsers", reflect.TypeOf((*Mockservice)(nil).GetByUsers), UserID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUserID", reflect.TypeOf((*Mockservice)(nil).GetByUserID), UserID)
+}
+
+// Ping mocks base method.
+func (m *Mockservice) Ping() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Ping")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Ping indicates an expected call of Ping.
+func (mr *MockserviceMockRecorder) Ping() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Ping", reflect.TypeOf((*Mockservice)(nil).Ping))
 }
 
 // Shorten mocks base method.

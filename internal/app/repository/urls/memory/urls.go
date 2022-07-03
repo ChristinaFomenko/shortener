@@ -38,7 +38,7 @@ func (r *repository) Get(id string) (string, error) {
 	return url, nil
 }
 
-func (r *repository) GetByUser(userID string) (string, error) {
+func (r *repository) GetByUserID(userID string) (string, error) {
 	r.ma.Lock()
 	defer r.ma.Unlock()
 
@@ -48,4 +48,9 @@ func (r *repository) GetByUser(userID string) (string, error) {
 	}
 
 	return user, nil
+}
+
+func (r *repository) Ping() error {
+	//TODO implement me
+	panic("implement me")
 }

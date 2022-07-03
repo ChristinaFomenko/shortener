@@ -113,7 +113,7 @@ func Test_service_GetByUsers(t *testing.T) {
 				generator:  tt.fields.generator,
 				host:       tt.fields.host,
 			}
-			got, err := s.GetByUsers(tt.args.UserID)
+			got, err := s.GetByUserID(tt.args.UserID)
 			if !tt.wantErr(t, err, fmt.Sprintf("GetByUsers(%v)", tt.args.UserID)) {
 				return
 			}

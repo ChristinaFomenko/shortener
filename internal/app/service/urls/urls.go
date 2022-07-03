@@ -10,7 +10,8 @@ import (
 type urlRepository interface {
 	Add(id, url string) error
 	Get(id string) (string, error)
-	GetByUser(userID string) (string, error)
+	GetByUserID(userID string) (string, error)
+	Ping() error
 }
 
 type generator interface {
@@ -23,8 +24,13 @@ type service struct {
 	host       string
 }
 
-func (s *service) GetByUsers(UserID string) (string, error) {
-	user, err := s.repository.GetByUser(UserID)
+func (s *service) Ping() error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *service) GetByUserID(UserID string) (string, error) {
+	user, err := s.repository.GetByUserID(UserID)
 	if err != nil {
 		log.WithError(err).WithField("userID", UserID).Error("get user ID error")
 		return "", err

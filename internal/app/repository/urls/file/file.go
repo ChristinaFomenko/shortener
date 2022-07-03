@@ -15,7 +15,7 @@ type fileRepository struct {
 	filePath string
 }
 
-func (r *fileRepository) GetByUser(userID string) (string, error) {
+func (r *fileRepository) GetByUserID(userID string) (string, error) {
 	r.ma.RLock()
 	defer r.ma.RUnlock()
 
@@ -109,4 +109,9 @@ func (r *fileRepository) Get(id string) (string, error) {
 	}
 
 	return url, nil
+}
+
+func (r *fileRepository) Ping() error {
+	//TODO implement me
+	panic("implement me")
 }

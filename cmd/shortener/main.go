@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"github.com/ChristinaFomenko/shortener/configs"
 	"github.com/ChristinaFomenko/shortener/internal/app/generator"
 	repositoryURL "github.com/ChristinaFomenko/shortener/internal/app/repository/urls"
@@ -23,12 +24,12 @@ func main() {
 		log.Fatalf("failed to retrieve env variables, %v", err)
 	}
 
-	//// Database
-	//db, err := sql.Open("pgx", cfg.DatabaseDSN)
-	//if err != nil {
-	//	log.Fatalf("failed to connnect db %v", err)
-	//}
-	//defer db.Close()
+	// Database
+	db, err := sql.Open("pgx", cfg.DatabaseDSN)
+	if err != nil {
+		log.Fatalf("failed to connnect db %v", err)
+	}
+	defer db.Close()
 
 	// Repositories
 	repository, err := repositoryURL.NewStorage(cfg.FileStoragePath)
@@ -49,11 +50,11 @@ func main() {
 	router.Use(middlewares.AuthCookie)
 
 	//router.Route("/", func(r chi.Router) {
-	router.Post("/", handlers.New(service).Shorten)
-	router.Get("/{id}", handlers.New(service).Expand)
-	router.Post("/api/shorten", handlers.New(service).APIJSONShorten)
-	router.Get("/api/user/urls", handlers.New(service).GetUserUrls)
-	//router.Get("/ping", handlers.New(service).Ping)
+	router.Post("/", handlers.New(service, db).Shorten)
+	router.Get("/{id}", handlers.New(service, db).Expand)
+	router.Post("/api/shorten", handlers.New(service, db).APIJSONShorten)
+	router.Get("/api/user/urls", handlers.New(service, db).GetByUserID)
+	router.Get("/ping", handlers.New(service, db).Ping)
 	//})
 
 	address := cfg.ServerAddress

@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/json"
 	"github.com/ChristinaFomenko/shortener/internal/app/models"
 	"github.com/asaskevich/govalidator"
 	"github.com/go-chi/chi/v5"
+	_ "github.com/jackc/pgx/v4/stdlib"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
@@ -15,16 +17,19 @@ import (
 type service interface {
 	Shorten(url string) (string, error)
 	Expand(id string) (string, error)
-	GetByUsers(UserID string) (string, error)
+	GetByUserID(UserID string) (string, error)
+	Ping() error
 }
 
 type handler struct {
 	service service
+	db      *sql.DB
 }
 
-func New(service service) *handler {
+func New(service service, db *sql.DB) *handler {
 	return &handler{
 		service: service,
+		db:      db,
 	}
 }
 
@@ -115,13 +120,13 @@ func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *handler) GetUserUrls(w http.ResponseWriter, r *http.Request) {
+func (h *handler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 	idCookie, err := r.Cookie("user_id")
 	w.Header().Set("Content-Type", "application/json")
 
 	req := models.ResponseEntity{}
 
-	urls, err := h.service.GetByUsers(idCookie.Value)
+	urls, err := h.service.GetByUserID(idCookie.Value)
 	if err != nil {
 		log.WithError(err).WithField("url", req.OriginalURL).Error("original url error")
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -147,6 +152,11 @@ func (h *handler) GetUserUrls(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-//func (h *handler) Ping(w http.ResponseWriter, r *http.Request) {
-//
-//}
+func (h *handler) Ping(w http.ResponseWriter, r *http.Request) {
+	if err := h.db.Ping(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}

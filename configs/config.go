@@ -11,14 +11,14 @@ type appConfig struct {
 	BaseURL         string `env:"BASE_URL" envDefault:"http://localhost:8080"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH" envDefault:"./storage.json"`
 	AuthKey         string `env:"AUTH_KEY" envDefault:"auth"`
-	//DatabaseDSN     string `env:"DATABASE_DSN"`
+	DatabaseDSN     string `env:"DATABASE_DSN"`
 }
 
 func NewConfig() (*appConfig, error) {
 	serverAddress := getServerAddress()
 	baseURL := getBaseURL()
 	fileStoragePath := getFileStoragePath()
-	//databaseDSN := getDatabaseDSN()
+	databaseDSN := getDatabaseDSN()
 	flag.Parse()
 
 	if serverAddress == nil {
@@ -33,15 +33,15 @@ func NewConfig() (*appConfig, error) {
 		return nil, errors.New("file storage path not specified")
 	}
 
-	//if databaseDSN == nil {
-	//	return nil, errors.New("database dsn not specified")
-	//}
+	if databaseDSN == nil {
+		return nil, errors.New("database dsn not specified")
+	}
 
 	return &appConfig{
 		ServerAddress:   *serverAddress,
 		BaseURL:         *baseURL,
 		FileStoragePath: *fileStoragePath,
-		//	DatabaseDSN:     *databaseDSN,
+		DatabaseDSN:     *databaseDSN,
 	}, nil
 }
 
@@ -69,8 +69,8 @@ func getFileStoragePath() *string {
 	return flag.String("f", path, "file storage path")
 }
 
-//func getDatabaseDSN() *string {
-//	databaseDSN, _ := os.LookupEnv("DATABASE_DSN")
-//
-//	return flag.String("-d", databaseDSN, "database")
-//}
+func getDatabaseDSN() *string {
+	databaseDSN, _ := os.LookupEnv("DATABASE_DSN")
+
+	return flag.String("d", databaseDSN, "database")
+}
