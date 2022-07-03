@@ -49,7 +49,7 @@ func TestShortenHandler(t *testing.T) {
 			serviceMock := mock.NewMockservice(ctrl)
 			serviceMock.EXPECT().Shorten(tt.url).Return(tt.shortcut, nil)
 
-			httpHandler := New(serviceMock)
+			httpHandler := New(serviceMock, nil)
 
 			buffer := new(bytes.Buffer)
 			buffer.WriteString(tt.url)
@@ -112,7 +112,7 @@ func TestAPIJSONShorten_Success(t *testing.T) {
 			serviceMock := mock.NewMockservice(ctrl)
 			serviceMock.EXPECT().Shorten(tt.url).Return(tt.shortcut, tt.err)
 
-			httpHandler := New(serviceMock)
+			httpHandler := New(serviceMock, nil)
 
 			buffer := new(bytes.Buffer)
 			buffer.WriteString(tt.body)
@@ -182,7 +182,7 @@ func TestAPIJSONShorten_BadRequest(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			httpHandler := New(nil)
+			httpHandler := New(nil, nil)
 
 			buffer := new(bytes.Buffer)
 			buffer.WriteString(tt.body)
@@ -208,7 +208,7 @@ func TestAPIJSONShorten_BadRequest(t *testing.T) {
 	}
 }
 
-func Test_handler_GetUserUrls(t *testing.T) {
+func Test_handler_GetByUserID(t *testing.T) {
 	type fields struct {
 		service service
 	}
@@ -226,7 +226,7 @@ func Test_handler_GetUserUrls(t *testing.T) {
 			h := &handler{
 				service: tt.fields.service,
 			}
-			h.GetUserUrls(tt.args.w, tt.args.r)
+			h.GetByUserID(tt.args.w, tt.args.r)
 		})
 	}
 }
