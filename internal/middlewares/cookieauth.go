@@ -1,77 +1,57 @@
 package middlewares
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
+	"crypto/aes"
+	"crypto/rand"
 	"encoding/hex"
-	"errors"
-	"fmt"
+	log "github.com/sirupsen/logrus"
 	"net/http"
-	"strings"
+	"time"
 )
 
-type CookieAuth struct {
-	key        []byte
-	cookieName string
+func AuthCookie(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authCookie := make([]byte, aes.BlockSize)
+
+		secretKey := []byte("sbHYDYWgdakkHHDS")
+
+		nonce := []byte("YANDEX")
+
+		aesblock, err := aes.NewCipher(secretKey)
+		if err != nil {
+			log.Infof("Cannot inicialize symmetric encryption interface %v", err)
+		}
+
+		if requestUserID, err := r.Cookie("userid"); err == nil {
+			requestUserIDByte, err := hex.DecodeString(requestUserID.Value)
+			if err != nil {
+				log.Infof("Auth Cookie decoding: %v\n", err)
+			}
+			aesblock.Decrypt(authCookie, requestUserIDByte)
+			if string(authCookie[len(authCookie)-len(nonce):]) == string(nonce) {
+				next.ServeHTTP(w, r)
+				return //	если ДА, то проверка подлинности пройдена
+			}
+		}
+
+		userID, _ := generateRandom(10)
+		aesblock.Encrypt(authCookie, append(userID, nonce...)) // зашифровываем (UserID + nonce) в переменную authCookie
+
+		cookie := &http.Cookie{
+			Name: "userid", Value: hex.EncodeToString(authCookie), Expires: time.Now().AddDate(1, 0, 0),
+		}
+
+		http.SetCookie(w, cookie)
+		r.AddCookie(cookie)
+		next.ServeHTTP(w, r)
+	})
 }
 
-var (
-	ErrNoTokenFound = errors.New("no token found")
-	ErrInvalidToken = errors.New("token is invalid")
-)
-
-func New(key []byte, cookieName string) *CookieAuth {
-	ca := &CookieAuth{
-		key:        key,
-		cookieName: cookieName,
-	}
-	return ca
-}
-
-func (ca *CookieAuth) GetUserID(r *http.Request) (string, error) {
-	tokenString := ca.getTokenFromCookie(r)
-	if tokenString == "" {
-		return "", ErrNoTokenFound
-	}
-
-	return ca.verifyToken(tokenString)
-}
-
-func (ca *CookieAuth) SetUserIDCookie(w http.ResponseWriter, uid string) {
-	token := fmt.Sprintf("%s:%s", uid, ca.calcHash(uid))
-	cookie := &http.Cookie{
-		Name:  ca.cookieName,
-		Value: token,
-	}
-	http.SetCookie(w, cookie)
-}
-
-func (ca *CookieAuth) verifyToken(tokenString string) (string, error) {
-	parts := strings.Split(tokenString, ":")
-	if len(parts) != 2 {
-		return "", ErrInvalidToken
-	}
-	uid, h := parts[0], parts[1]
-	if !ca.checkHash(uid, h) {
-		return "", ErrInvalidToken
-	}
-	return uid, nil
-}
-
-func (ca *CookieAuth) getTokenFromCookie(r *http.Request) string {
-	cookie, err := r.Cookie(ca.cookieName)
+func generateRandom(size int) ([]byte, error) {
+	b := make([]byte, size)
+	_, err := rand.Read(b)
 	if err != nil {
-		return ""
+		return nil, err
 	}
-	return cookie.Value
-}
-
-func (ca *CookieAuth) calcHash(uid string) string {
-	h := hmac.New(sha256.New, ca.key)
-	h.Write([]byte(uid))
-	return hex.EncodeToString(h.Sum(nil))
-}
-
-func (ca *CookieAuth) checkHash(uid string, hash string) bool {
-	return hash == ca.calcHash(uid)
+	return b, nil
 }

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"github.com/ChristinaFomenko/shortener/internal/app/models"
 	"github.com/asaskevich/govalidator"
 	"github.com/go-chi/chi/v5"
 	log "github.com/sirupsen/logrus"
@@ -77,7 +78,7 @@ func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req := ShortenRequest{}
+	req := models.ShortenRequest{}
 	if err = json.Unmarshal(b, &req); err != nil {
 		http.Error(w, "request in not valid", http.StatusBadRequest)
 		return
@@ -99,7 +100,7 @@ func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 
-	resp := ShortenReply{ShortenURLResult: shortcut}
+	resp := models.ShortenReply{ShortenURLResult: shortcut}
 	marshal, err := json.Marshal(&resp)
 	if err != nil {
 		log.WithError(err).WithField("resp", resp).Error("marshal response error")
@@ -118,7 +119,7 @@ func (h *handler) GetUserUrls(w http.ResponseWriter, r *http.Request) {
 	idCookie, err := r.Cookie("user_id")
 	w.Header().Set("Content-Type", "application/json")
 
-	req := ResponseEntity{}
+	req := models.ResponseEntity{}
 
 	urls, err := h.service.GetByUsers(idCookie.Value)
 	if err != nil {
@@ -131,7 +132,7 @@ func (h *handler) GetUserUrls(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 	}
 
-	resp := ResponseEntity{OriginalURL: urls}
+	resp := models.ResponseEntity{OriginalURL: urls}
 	body, err := json.Marshal(&resp)
 	if err != nil {
 		log.WithError(err).WithField("resp", urls).Error("marshal urls response error")
@@ -145,3 +146,7 @@ func (h *handler) GetUserUrls(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 }
+
+//func (h *handler) Ping(w http.ResponseWriter, r *http.Request) {
+//
+//}
