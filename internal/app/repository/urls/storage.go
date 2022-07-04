@@ -1,6 +1,7 @@
 package urls
 
 import (
+	"github.com/ChristinaFomenko/shortener/internal/app/models"
 	"github.com/ChristinaFomenko/shortener/internal/app/repository/urls/file"
 	"github.com/ChristinaFomenko/shortener/internal/app/repository/urls/memory"
 )
@@ -8,7 +9,7 @@ import (
 type Repo interface {
 	Add(id, url string) error
 	Get(id string) (string, error)
-	GetByUserID(userID string) (string, error)
+	GetList() ([]models.UserURL, error)
 	Ping() error
 }
 

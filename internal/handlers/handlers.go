@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"database/sql"
 	"encoding/json"
 	"github.com/ChristinaFomenko/shortener/internal/app/models"
 	"github.com/asaskevich/govalidator"
@@ -17,19 +16,17 @@ import (
 type service interface {
 	Shorten(url string) (string, error)
 	Expand(id string) (string, error)
-	GetByUserID(UserID string) (string, error)
+	GetList() ([]models.UserURL, error)
 	Ping() error
 }
 
 type handler struct {
 	service service
-	db      *sql.DB
 }
 
-func New(service service, db *sql.DB) *handler {
+func New(service service) *handler {
 	return &handler{
 		service: service,
-		db:      db,
 	}
 }
 
@@ -120,24 +117,22 @@ func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *handler) GetByUserID(w http.ResponseWriter, r *http.Request) {
-	idCookie, err := r.Cookie("user_id")
-	w.Header().Set("Content-Type", "application/json")
-
-	req := models.ResponseEntity{}
-
-	urls, err := h.service.GetByUserID(idCookie.Value)
+func (h *handler) GetList(w http.ResponseWriter, r *http.Request) {
+	urls, err := h.service.GetList()
 	if err != nil {
-		log.WithError(err).WithField("url", req.OriginalURL).Error("original url error")
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.WithError(err).Error("get urls error")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	if len(urls) == 0 {
 		w.WriteHeader(http.StatusNoContent)
+		return
 	}
 
-	resp := models.ResponseEntity{OriginalURL: urls}
+	w.Header().Set("content-type", "application/json")
+
+	resp := toGetUrlsReply(urls)
 	body, err := json.Marshal(&resp)
 	if err != nil {
 		log.WithError(err).WithField("resp", urls).Error("marshal urls response error")
@@ -145,7 +140,7 @@ func (h *handler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 	}
 	_, err = w.Write(body)
 	if err != nil {
-		log.WithError(err).WithField("shortcut", urls).Error("write response error")
+		log.WithError(err).WithField("resp", urls).Error("write response error")
 		return
 	}
 
@@ -153,7 +148,7 @@ func (h *handler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) Ping(w http.ResponseWriter, r *http.Request) {
-	if err := h.db.Ping(); err != nil {
+	if err := h.service.Ping(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

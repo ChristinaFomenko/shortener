@@ -7,6 +7,7 @@ package mock_urls
 import (
 	reflect "reflect"
 
+	models "github.com/ChristinaFomenko/shortener/internal/app/models"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -62,19 +63,19 @@ func (mr *MockurlRepositoryMockRecorder) Get(id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockurlRepository)(nil).Get), id)
 }
 
-// GetByUserID mocks base method.
-func (m *MockurlRepository) GetByUserID(userID string) (string, error) {
+// GetList mocks base method.
+func (m *MockurlRepository) GetList() ([]models.UserURL, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByUserID", userID)
-	ret0, _ := ret[0].(string)
+	ret := m.ctrl.Call(m, "GetList")
+	ret0, _ := ret[0].([]models.UserURL)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetByUserID indicates an expected call of GetByUserID.
-func (mr *MockurlRepositoryMockRecorder) GetByUserID(userID interface{}) *gomock.Call {
+// GetList indicates an expected call of GetList.
+func (mr *MockurlRepositoryMockRecorder) GetList() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUserID", reflect.TypeOf((*MockurlRepository)(nil).GetByUserID), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetList", reflect.TypeOf((*MockurlRepository)(nil).GetList))
 }
 
 // Ping mocks base method.

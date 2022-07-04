@@ -2,7 +2,7 @@ package urls
 
 import (
 	"errors"
-	"fmt"
+	"github.com/ChristinaFomenko/shortener/internal/app/models"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -13,7 +13,7 @@ import (
 
 const host = "http://localhost:8080"
 
-func TestShorten(t *testing.T) {
+func Test_service_Shorten(t *testing.T) {
 	tests := []struct {
 		name     string
 		id       string
@@ -54,7 +54,7 @@ func TestShorten(t *testing.T) {
 	}
 }
 
-func TestExpand(t *testing.T) {
+func Test_service_Expand(t *testing.T) {
 	tests := []struct {
 		name     string
 		url      string
@@ -90,34 +90,44 @@ func TestExpand(t *testing.T) {
 	}
 }
 
-func Test_service_GetByUsers(t *testing.T) {
-	type fields struct {
-		repository urlRepository
-		generator  generator
-		host       string
+func Test_service_GetList(t *testing.T) {
+	tests := []struct {
+		name string
+		urls []models.UserURL
+		err  error
+	}{
+		{
+			name: "success",
+			urls: []models.UserURL{
+				{
+					ShortURL:    "http://localhost:8080/abcde",
+					OriginalURL: "https://yandex.ru",
+				},
+				{
+					ShortURL:    "http://localhost:8080/qwerty",
+					OriginalURL: "https://github.com",
+				},
+			},
+			err: nil,
+		},
+		{
+			name: "repo err",
+			urls: nil,
+			err:  errors.New("test err"),
+		},
 	}
-	type args struct {
-		UserID string
-	}
-	var tests []struct {
-		name    string
-		fields  fields
-		args    args
-		want    string
-		wantErr assert.ErrorAssertionFunc
-	}
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &service{
-				repository: tt.fields.repository,
-				generator:  tt.fields.generator,
-				host:       tt.fields.host,
-			}
-			got, err := s.GetByUserID(tt.args.UserID)
-			if !tt.wantErr(t, err, fmt.Sprintf("GetByUsers(%v)", tt.args.UserID)) {
-				return
-			}
-			assert.Equalf(t, tt.want, got, "GetByUsers(%v)", tt.args.UserID)
-		})
+		repositoryMock := mocks.NewMockurlRepository(ctrl)
+		repositoryMock.EXPECT().GetList().Return(tt.urls, tt.err)
+
+		s := NewService(repositoryMock, nil, host)
+		act, err := s.GetList()
+
+		assert.Equal(t, tt.err, err)
+		assert.Equal(t, tt.urls, act)
 	}
 }

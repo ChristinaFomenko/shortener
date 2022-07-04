@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ChristinaFomenko/shortener/internal/app/models"
 	"os"
 	"sync"
 )
@@ -13,23 +14,6 @@ type fileRepository struct {
 	store    map[string]string
 	ma       sync.RWMutex
 	filePath string
-}
-
-func (r *fileRepository) GetByUserID(userID string) (string, error) {
-	r.ma.RLock()
-	defer r.ma.RUnlock()
-
-	user, ok := r.store[userID]
-	if !ok {
-		return "", errors.New("url not found")
-	}
-
-	return user, nil
-}
-
-type UserURL struct {
-	ShortURL    string `json:"short_url"`
-	OriginalURL string `json:"original_url"`
 }
 
 func NewRepo(filePath string) (*fileRepository, error) {
@@ -109,6 +93,21 @@ func (r *fileRepository) Get(id string) (string, error) {
 	}
 
 	return url, nil
+}
+
+func (r *fileRepository) GetList() ([]models.UserURL, error) {
+	r.ma.RLock()
+	defer r.ma.RUnlock()
+
+	urls := make([]models.UserURL, 0, len(r.store))
+	for shortURL, originalURL := range r.store {
+		urls = append(urls, models.UserURL{
+			ShortURL:    shortURL,
+			OriginalURL: originalURL,
+		})
+	}
+
+	return urls, nil
 }
 
 func (r *fileRepository) Ping() error {

@@ -8,7 +8,12 @@ type ShortenReply struct {
 	ShortenURLResult string `json:"result"`
 }
 
-type ResponseEntity struct {
+type UserURL struct {
+	ShortURL    string `json:"short_url"`
+	OriginalURL string `json:"original_url"`
+}
+
+type GetUrlsReply struct {
 	ShortURL    string `json:"short_url"`
 	OriginalURL string `json:"original_url"`
 }

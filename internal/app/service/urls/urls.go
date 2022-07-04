@@ -2,6 +2,7 @@ package urls
 
 import (
 	"fmt"
+	"github.com/ChristinaFomenko/shortener/internal/app/models"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -10,7 +11,7 @@ import (
 type urlRepository interface {
 	Add(id, url string) error
 	Get(id string) (string, error)
-	GetByUserID(userID string) (string, error)
+	GetList() ([]models.UserURL, error)
 	Ping() error
 }
 
@@ -22,21 +23,6 @@ type service struct {
 	repository urlRepository
 	generator  generator
 	host       string
-}
-
-func (s *service) Ping() error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (s *service) GetByUserID(UserID string) (string, error) {
-	user, err := s.repository.GetByUserID(UserID)
-	if err != nil {
-		log.WithError(err).WithField("userID", UserID).Error("get user ID error")
-		return "", err
-	}
-
-	return user, nil
 }
 
 func NewService(
@@ -71,4 +57,18 @@ func (s *service) Expand(id string) (string, error) {
 	}
 
 	return url, nil
+}
+
+func (s *service) GetList() ([]models.UserURL, error) {
+	urls, err := s.repository.GetList()
+	if err != nil {
+		log.WithError(err).Error("get url list error")
+		return nil, err
+	}
+
+	return urls, nil
+}
+
+func (s *service) Ping() error {
+	return fmt.Errorf("method doesn't implemented")
 }

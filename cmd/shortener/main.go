@@ -50,11 +50,11 @@ func main() {
 	router.Use(middlewares.AuthCookie)
 
 	//router.Route("/", func(r chi.Router) {
-	router.Post("/", handlers.New(service, db).Shorten)
-	router.Get("/{id}", handlers.New(service, db).Expand)
-	router.Post("/api/shorten", handlers.New(service, db).APIJSONShorten)
-	router.Get("/api/user/urls", handlers.New(service, db).GetByUserID)
-	router.Get("/ping", handlers.New(service, db).Ping)
+	router.Post("/", handlers.New(service).Shorten)
+	router.Get("/{id}", handlers.New(service).Expand)
+	router.Post("/api/shorten", handlers.New(service).APIJSONShorten)
+	router.Get("/api/user/urls", handlers.New(service).GetList)
+	router.Get("/ping", handlers.New(service).Ping)
 	//})
 
 	address := cfg.ServerAddress
