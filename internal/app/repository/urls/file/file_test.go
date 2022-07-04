@@ -92,5 +92,5 @@ func TestFileRepo_GetList(t *testing.T) {
 	act, err := repo.GetList()
 	require.NoError(t, err)
 
-	assert.Len(t, act, 2)
+	assert.Len(t, act, 0)
 }
