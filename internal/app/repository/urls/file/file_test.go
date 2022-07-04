@@ -86,11 +86,11 @@ func TestFileRepo_GetList(t *testing.T) {
 	err = repo.Add("qwerty", "github.com")
 	require.NoError(t, err)
 
-	repo, err = NewRepo("store.dat")
+	repo, err = NewRepo("storage.dat")
 	require.NoError(t, err)
 
 	act, err := repo.GetList()
 	require.NoError(t, err)
 
-	assert.Len(t, act, 0)
+	assert.Len(t, act, 2)
 }
