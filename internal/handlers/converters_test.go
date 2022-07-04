@@ -9,7 +9,7 @@ import (
 func TestToGetUrlsReply(t *testing.T) {
 	tests := []struct {
 		model []models.UserURL
-		exp   []models.GetUrlsReply
+		exp   []GetUrlsReply
 	}{
 		{
 			model: []models.UserURL{
@@ -22,7 +22,7 @@ func TestToGetUrlsReply(t *testing.T) {
 					OriginalURL: "https://github.com",
 				},
 			},
-			exp: []models.GetUrlsReply{
+			exp: []GetUrlsReply{
 				{
 					ShortURL:    "http://localhost:8080/abcde",
 					OriginalURL: "https://yandex.ru",
@@ -35,11 +35,11 @@ func TestToGetUrlsReply(t *testing.T) {
 		},
 		{
 			model: []models.UserURL{},
-			exp:   []models.GetUrlsReply{},
+			exp:   []GetUrlsReply{},
 		},
 		{
 			model: nil,
-			exp:   []models.GetUrlsReply{},
+			exp:   []GetUrlsReply{},
 		},
 	}
 
