@@ -55,6 +55,5 @@ func (r *repository) GetList() ([]models.UserURL, error) {
 }
 
 func (r *repository) Ping() error {
-	//TODO implement me
-	panic("implement me")
+	return nil
 }

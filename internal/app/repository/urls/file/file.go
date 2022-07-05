@@ -111,5 +111,5 @@ func (r *fileRepository) GetList() ([]models.UserURL, error) {
 }
 
 func (r *fileRepository) Ping() error {
-	return fmt.Errorf("method is not implemented")
+	return nil
 }
