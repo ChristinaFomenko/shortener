@@ -155,6 +155,5 @@ func (h *handler) Ping(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = w.Write([]byte("OK"))
 	w.WriteHeader(http.StatusOK)
 }
