@@ -1,8 +1,10 @@
 package urls
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/ChristinaFomenko/shortener/internal/app/models"
+	_ "github.com/jackc/pgx/v4"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -23,16 +25,20 @@ type service struct {
 	repository urlRepository
 	generator  generator
 	host       string
+	db         *sql.DB
 }
 
 func NewService(
 	repository urlRepository,
 	generator generator,
-	host string) *service {
+	host string,
+	db *sql.DB,
+) *service {
 	return &service{
 		repository: repository,
 		generator:  generator,
 		host:       host,
+		db:         db,
 	}
 }
 
@@ -70,5 +76,5 @@ func (s *service) GetList() ([]models.UserURL, error) {
 }
 
 func (s *service) Ping() error {
-	return fmt.Errorf("method doesn't implemented")
+	return nil
 }

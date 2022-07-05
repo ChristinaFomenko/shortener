@@ -32,6 +32,11 @@ func main() {
 	}
 	defer db.Close()
 
+	_, err = db.Exec(service2.CreateTable)
+	if err != nil {
+		log.Infof("failed to create create table %v", err)
+	}
+
 	// Repositories
 	repository, err := repositoryURL.NewStorage(cfg.FileStoragePath)
 	if err != nil {
@@ -39,12 +44,7 @@ func main() {
 	}
 	// Services
 	helper := generator.NewGenerator()
-	service := serviceURL.NewService(repository, helper, cfg.BaseURL)
-
-	_, err = db.Exec(service2.CreateTable)
-	if err != nil {
-		log.Infof("failed to create create table %v", err)
-	}
+	service := serviceURL.NewService(repository, helper, cfg.BaseURL, db)
 
 	// Route
 	router := chi.NewRouter()
