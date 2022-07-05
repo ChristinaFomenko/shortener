@@ -46,7 +46,7 @@ func Test_service_Shorten(t *testing.T) {
 		repositoryMock := mocks.NewMockurlRepository(ctrl)
 		repositoryMock.EXPECT().Add(tt.id, tt.url).Return(tt.err)
 
-		s := NewService(repositoryMock, generatorMock, host)
+		s := NewService(repositoryMock, generatorMock, host, nil)
 		act, err := s.Shorten(tt.url)
 
 		assert.Equal(t, tt.err, err)
@@ -82,7 +82,7 @@ func Test_service_Expand(t *testing.T) {
 		repositoryMock := mocks.NewMockurlRepository(ctrl)
 		repositoryMock.EXPECT().Get(tt.shortcut).Return(tt.url, tt.err)
 
-		s := NewService(repositoryMock, nil, host)
+		s := NewService(repositoryMock, nil, host, nil)
 		act, err := s.Expand(tt.shortcut)
 
 		assert.Equal(t, tt.err, err)
@@ -124,7 +124,7 @@ func Test_service_GetList(t *testing.T) {
 		repositoryMock := mocks.NewMockurlRepository(ctrl)
 		repositoryMock.EXPECT().GetList().Return(tt.urls, tt.err)
 
-		s := NewService(repositoryMock, nil, host)
+		s := NewService(repositoryMock, nil, host, nil)
 		act, err := s.GetList()
 
 		assert.Equal(t, tt.err, err)
