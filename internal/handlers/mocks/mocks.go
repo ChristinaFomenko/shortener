@@ -79,7 +79,7 @@ func (mr *MockserviceMockRecorder) Ping() *gomock.Call {
 }
 
 // Shorten mocks base method.
-func (m *Mockservice) Shorten(url string) (string, error) {
+func (m *Mockservice) Shorten(url models.CreateURL) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Shorten", url)
 	ret0, _ := ret[0].(string)

@@ -22,7 +22,7 @@ func AuthCookie(next http.Handler) http.Handler {
 			log.Infof("Cannot inicialize symmetric encryption interface %v", err)
 		}
 
-		if requestUserID, err := r.Cookie("userid"); err == nil {
+		if requestUserID, err := r.Cookie("user_id"); err == nil {
 			requestUserIDByte, err := hex.DecodeString(requestUserID.Value)
 			if err != nil {
 				log.Infof("Auth Cookie decoding: %v\n", err)

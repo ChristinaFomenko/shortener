@@ -14,7 +14,7 @@ import (
 //go:generate mockgen -source=handlers.go -destination=mocks/mocks.go
 
 type service interface {
-	Shorten(url string) (string, error)
+	Shorten(url models.CreateURL) (string, error)
 	Expand(id string) (string, error)
 	GetList() ([]models.UserURL, error)
 	Ping() error
@@ -39,8 +39,17 @@ func (h *handler) Shorten(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	idCookie, err := r.Cookie("user_id")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	url := string(bytes)
-	shortcut, err := h.service.Shorten(url)
+	id, err := h.service.Shorten(models.CreateURL{
+		User: idCookie.Value,
+		URL:  url,
+	})
 	if err != nil {
 		log.WithError(err).WithField("url", url).Error("shorten url error")
 		http.Error(w, "url shortcut", http.StatusInternalServerError)
@@ -49,11 +58,12 @@ func (h *handler) Shorten(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("content-type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
-	_, err = w.Write([]byte(shortcut))
+	_, err = w.Write([]byte(id))
 	if err != nil {
-		log.WithError(err).WithField("shortcut", shortcut).Error("write response error")
+		log.WithError(err).WithField("id", id).Error("write response error")
 		return
 	}
+	http.SetCookie(w, idCookie)
 }
 
 // Expand Returns full URL by ID of shorted one
@@ -86,13 +96,22 @@ func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	idCookie, err := r.Cookie("user_id")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	ok, err := govalidator.ValidateStruct(req)
 	if err != nil || !ok {
 		http.Error(w, "request in not valid", http.StatusBadRequest)
 		return
 	}
 
-	shortcut, err := h.service.Shorten(req.URL)
+	id, err := h.service.Shorten(models.CreateURL{
+		User: idCookie.Value,
+		URL:  req.URL,
+	})
 	if err != nil {
 		log.WithError(err).WithField("url", req.URL).Error("shorten url error")
 		http.Error(w, err.Error(), 400)
@@ -102,7 +121,7 @@ func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 
-	resp := models.ShortenReply{ShortenURLResult: shortcut}
+	resp := models.ShortenReply{ShortenURLResult: id}
 	marshal, err := json.Marshal(&resp)
 	if err != nil {
 		log.WithError(err).WithField("resp", resp).Error("marshal response error")
@@ -112,7 +131,7 @@ func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
 
 	_, err = w.Write(marshal)
 	if err != nil {
-		log.WithError(err).WithField("shortcut", shortcut).Error("write response error")
+		log.WithError(err).WithField("id", id).Error("write response error")
 		return
 	}
 }
@@ -148,10 +167,13 @@ func (h *handler) GetList(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) Ping(w http.ResponseWriter, r *http.Request) {
-	if err := h.service.Ping(); err != nil {
+	err := h.service.Ping()
+	if err != nil {
+		log.Infof("DB not avalable %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	_, err = w.Write([]byte("OK"))
 	w.WriteHeader(http.StatusOK)
 }
