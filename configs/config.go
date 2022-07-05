@@ -3,6 +3,7 @@ package configs
 import (
 	"errors"
 	"flag"
+	"github.com/caarlos0/env"
 	"os"
 )
 
@@ -10,7 +11,7 @@ type appConfig struct {
 	ServerAddress   string `env:"SERVER_ADDRESS" envDefault:":8080"`
 	BaseURL         string `env:"BASE_URL" envDefault:"http://localhost:8080"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH" envDefault:"./storage.json"`
-	AuthKey         string `env:"AUTH_KEY" envDefault:"auth"`
+	AuthKey         []byte
 	DatabaseDSN     string `env:"DATABASE_DSN"`
 }
 
@@ -20,6 +21,11 @@ func NewConfig() (*appConfig, error) {
 	fileStoragePath := getFileStoragePath()
 	databaseDSN := getDatabaseDSN()
 	flag.Parse()
+
+	instance := &appConfig{}
+	if err := env.Parse(instance); err != nil {
+		return nil, errors.New("auth key not specified")
+	}
 
 	if serverAddress == nil {
 		return nil, errors.New("server address not specified")
@@ -36,6 +42,8 @@ func NewConfig() (*appConfig, error) {
 	if databaseDSN == nil {
 		return nil, errors.New("database dsn not specified")
 	}
+
+	instance.AuthKey = make([]byte, 16)
 
 	return &appConfig{
 		ServerAddress:   *serverAddress,

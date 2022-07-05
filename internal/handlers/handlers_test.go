@@ -90,6 +90,7 @@ func TestAPIJSONShorten_Success(t *testing.T) {
 		shortcut string
 		want     want
 		err      error
+		id       string
 	}{
 		{
 			name:     "success",
@@ -103,6 +104,7 @@ func TestAPIJSONShorten_Success(t *testing.T) {
 			},
 			request: "/api/shorten",
 			err:     nil,
+			id:      "fhlkd",
 		},
 	}
 	for _, tt := range tests {

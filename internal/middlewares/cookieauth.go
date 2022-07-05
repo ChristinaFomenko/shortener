@@ -38,7 +38,7 @@ func AuthCookie(next http.Handler) http.Handler {
 		aesblock.Encrypt(authCookie, append(userID, nonce...)) // зашифровываем (UserID + nonce) в переменную authCookie
 
 		cookie := &http.Cookie{
-			Name: "userid", Value: hex.EncodeToString(authCookie), Expires: time.Now().AddDate(1, 0, 0),
+			Name: "user_id", Value: hex.EncodeToString(authCookie), Expires: time.Now().AddDate(1, 0, 0),
 		}
 
 		http.SetCookie(w, cookie)
