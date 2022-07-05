@@ -5,6 +5,7 @@ import (
 	"github.com/ChristinaFomenko/shortener/configs"
 	"github.com/ChristinaFomenko/shortener/internal/app/generator"
 	repositoryURL "github.com/ChristinaFomenko/shortener/internal/app/repository/urls"
+	service2 "github.com/ChristinaFomenko/shortener/internal/app/service"
 	serviceURL "github.com/ChristinaFomenko/shortener/internal/app/service/urls"
 	"github.com/ChristinaFomenko/shortener/internal/handlers"
 	"github.com/ChristinaFomenko/shortener/internal/middlewares"
@@ -39,6 +40,11 @@ func main() {
 	// Services
 	helper := generator.NewGenerator()
 	service := serviceURL.NewService(repository, helper, cfg.BaseURL)
+
+	_, err = db.Exec(service2.CreateTable)
+	if err != nil {
+		log.Infof("failed to create create table %v", err)
+	}
 
 	// Route
 	router := chi.NewRouter()
