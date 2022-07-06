@@ -273,3 +273,28 @@ func Test_handler_GetList_Success(t *testing.T) {
 		})
 	}
 }
+
+func Test_handler_BatchShortenHandler(t *testing.T) {
+	type fields struct {
+		service service
+	}
+	type args struct {
+		w http.ResponseWriter
+		r *http.Request
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := &handler{
+				service: tt.fields.service,
+			}
+			h.BatchShortenHandler(tt.args.w, tt.args.r)
+		})
+	}
+}

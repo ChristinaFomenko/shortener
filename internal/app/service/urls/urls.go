@@ -3,6 +3,7 @@ package urls
 import (
 	"database/sql"
 	"fmt"
+	"github.com/ChristinaFomenko/shortener/configs"
 	"github.com/ChristinaFomenko/shortener/internal/models"
 	_ "github.com/jackc/pgx/v4"
 	log "github.com/sirupsen/logrus"
@@ -26,6 +27,7 @@ type service struct {
 	generator  generator
 	host       string
 	db         *sql.DB
+	config     *configs.AppConfig
 }
 
 func NewService(
@@ -33,12 +35,14 @@ func NewService(
 	generator generator,
 	host string,
 	db *sql.DB,
+	config *configs.AppConfig,
 ) *service {
 	return &service{
 		repository: repository,
 		generator:  generator,
 		host:       host,
 		db:         db,
+		config:     config,
 	}
 }
 

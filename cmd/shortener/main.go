@@ -17,6 +17,8 @@ import (
 	"net/http"
 )
 
+var conf *configs.AppConfig
+
 func main() {
 	// Config
 	cfg, err := configs.NewConfig()
@@ -44,7 +46,7 @@ func main() {
 	}
 	// Services
 	helper := generator.NewGenerator()
-	service := serviceURL.NewService(repository, helper, cfg.BaseURL, db)
+	service := serviceURL.NewService(repository, helper, cfg.BaseURL, db, conf)
 
 	// Route
 	router := chi.NewRouter()
@@ -61,6 +63,7 @@ func main() {
 	router.Post("/api/shorten", handlers.New(service).APIJSONShorten)
 	router.Get("/api/user/urls", handlers.New(service).GetList)
 	router.Get("/ping", handlers.New(service).Ping)
+	//router.Post("/api/shorten/batch", handlers.New(service).BatchShortenHandler)
 	//})
 
 	address := cfg.ServerAddress

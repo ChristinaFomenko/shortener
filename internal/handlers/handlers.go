@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
+	"github.com/ChristinaFomenko/shortener/configs"
 	"github.com/ChristinaFomenko/shortener/internal/models"
 	"github.com/asaskevich/govalidator"
 	"github.com/go-chi/chi/v5"
@@ -9,6 +11,13 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
+)
+
+var cfg = configs.AppConfig{}
+
+var (
+	ErrNoTokenFound = errors.New("no token found")
+	ErrInvalidToken = errors.New("token is invalid")
 )
 
 //go:generate mockgen -source=handlers.go -destination=mocks/mocks.go
@@ -156,4 +165,45 @@ func (h *handler) Ping(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+type batchShortenRequest []batchShortenRequest
+
+func (h *handler) BatchShortenHandler(w http.ResponseWriter, r *http.Request) {
+	b, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Could not read batch request body", http.StatusInternalServerError)
+		return
+	}
+
+	cookie := http.Cookie{Name: "user_id", Value: "abcd"}
+	if err != nil {
+		if errors.Is(err, ErrNoTokenFound) || errors.Is(err, ErrInvalidToken) {
+			http.SetCookie(w, &cookie)
+		} else {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+	}
+	var req batchShortenRequest
+
+	if err := json.Unmarshal(b, &req); err != nil {
+		http.Error(w, "Invalid json", http.StatusBadRequest)
+	}
+
+	resp := make([]models.BatchShortenResponse, len(req))
+
+	serializedResp, err := json.Marshal(resp)
+	if err != nil {
+		http.Error(w, "Can't serialize response", http.StatusInternalServerError)
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusCreated)
+
+	_, err = w.Write(serializedResp)
+	if err != nil {
+		log.Printf("Write failed: %v", err)
+	}
+
 }
