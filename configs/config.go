@@ -1,14 +1,10 @@
 package configs
 
 import (
-	"crypto/rand"
-	"encoding/hex"
 	"errors"
 	"flag"
 	"os"
 )
-
-const AuthKeyLength = 32
 
 type AppConfig struct {
 	ServerAddress   string `env:"SERVER_ADDRESS" envDefault:":8080"`
@@ -22,7 +18,6 @@ func NewConfig() (*AppConfig, error) {
 	serverAddress := getServerAddress()
 	baseURL := getBaseURL()
 	fileStoragePath := getFileStoragePath()
-	authKey, _ := configureSecretKey()
 	databaseDSN := getDatabaseDSN()
 	flag.Parse()
 
@@ -46,7 +41,6 @@ func NewConfig() (*AppConfig, error) {
 		ServerAddress:   *serverAddress,
 		BaseURL:         *baseURL,
 		FileStoragePath: *fileStoragePath,
-		AuthKey:         string(authKey),
 		DatabaseDSN:     *databaseDSN,
 	}, nil
 }
@@ -75,26 +69,6 @@ func getFileStoragePath() *string {
 	return flag.String("f", path, "file storage path")
 }
 
-func configureSecretKey() ([]byte, error) {
-	authKey := os.Getenv("BASE_URL")
-	if authKey != "" {
-		confKey, err := hex.DecodeString(authKey)
-		if err != nil {
-			return nil, err
-		}
-		return confKey, nil
-	}
-	return GenerateSecretKey(AuthKeyLength)
-}
-
-func GenerateSecretKey(length int) ([]byte, error) {
-	randKey := make([]byte, length)
-	_, err := rand.Read(randKey)
-	if err != nil {
-		return nil, err
-	}
-	return randKey, nil
-}
 func getDatabaseDSN() *string {
 	databaseDSN := os.Getenv("DATABASE_DSN")
 
