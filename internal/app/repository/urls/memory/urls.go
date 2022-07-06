@@ -2,7 +2,7 @@ package memory
 
 import (
 	"errors"
-	"github.com/ChristinaFomenko/shortener/internal/app/models"
+	"github.com/ChristinaFomenko/shortener/internal/models"
 	"sync"
 )
 

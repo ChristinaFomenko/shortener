@@ -1,23 +1,28 @@
 package configs
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"flag"
 	"os"
 )
 
-type appConfig struct {
+const AuthKeyLength = 32
+
+type AppConfig struct {
 	ServerAddress   string `env:"SERVER_ADDRESS" envDefault:":8080"`
-	BaseURL         string `env:"BASE_URL" envDefault:"http://localhost:8080"`
+	BaseURL         string `env:"BASE_URL" envDefault:"http://127.0.0.1:8080"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH" envDefault:"./storage.json"`
 	AuthKey         string `env:"AUTH_KEY" envDefault:"auth"`
-	DatabaseDSN     string `env:"DATABASE_DSN"`
+	DatabaseDSN     string `env:"DATABASE_DSN" envDefault:"postgres://christina:123@postgres:5432/praktikum"`
 }
 
-func NewConfig() (*appConfig, error) {
+func NewConfig() (*AppConfig, error) {
 	serverAddress := getServerAddress()
 	baseURL := getBaseURL()
 	fileStoragePath := getFileStoragePath()
+	authKey, _ := configureSecretKey()
 	databaseDSN := getDatabaseDSN()
 	flag.Parse()
 
@@ -37,10 +42,11 @@ func NewConfig() (*appConfig, error) {
 		return nil, errors.New("database dsn not specified")
 	}
 
-	return &appConfig{
+	return &AppConfig{
 		ServerAddress:   *serverAddress,
 		BaseURL:         *baseURL,
 		FileStoragePath: *fileStoragePath,
+		AuthKey:         string(authKey),
 		DatabaseDSN:     *databaseDSN,
 	}, nil
 }
@@ -69,6 +75,26 @@ func getFileStoragePath() *string {
 	return flag.String("f", path, "file storage path")
 }
 
+func configureSecretKey() ([]byte, error) {
+	authKey := os.Getenv("BASE_URL")
+	if authKey != "" {
+		confKey, err := hex.DecodeString(authKey)
+		if err != nil {
+			return nil, err
+		}
+		return confKey, nil
+	}
+	return GenerateSecretKey(AuthKeyLength)
+}
+
+func GenerateSecretKey(length int) ([]byte, error) {
+	randKey := make([]byte, length)
+	_, err := rand.Read(randKey)
+	if err != nil {
+		return nil, err
+	}
+	return randKey, nil
+}
 func getDatabaseDSN() *string {
 	databaseDSN := os.Getenv("DATABASE_DSN")
 

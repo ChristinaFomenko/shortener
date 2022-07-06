@@ -3,7 +3,7 @@ package urls
 import (
 	"database/sql"
 	"fmt"
-	"github.com/ChristinaFomenko/shortener/internal/app/models"
+	"github.com/ChristinaFomenko/shortener/internal/models"
 	_ "github.com/jackc/pgx/v4"
 	log "github.com/sirupsen/logrus"
 )
@@ -76,5 +76,5 @@ func (s *service) GetList() ([]models.UserURL, error) {
 }
 
 func (s *service) Ping() error {
-	return nil
+	return s.db.Ping()
 }
