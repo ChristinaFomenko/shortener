@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"github.com/ChristinaFomenko/shortener/configs"
+	"github.com/ChristinaFomenko/shortener/internal/app/database"
 	"github.com/ChristinaFomenko/shortener/internal/app/generator"
 	repositoryURL "github.com/ChristinaFomenko/shortener/internal/app/repository/urls"
 	serviceURL "github.com/ChristinaFomenko/shortener/internal/app/service/urls"
@@ -31,7 +32,7 @@ func main() {
 	}
 	defer db.Close()
 
-	_, err = db.Exec(serviceURL.CreateTable)
+	_, err = db.Exec(database.CreateTable)
 	if err != nil {
 		log.Infof("failed to create create table %v", err)
 	}

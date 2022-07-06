@@ -11,7 +11,7 @@ type AppConfig struct {
 	BaseURL         string `env:"BASE_URL" envDefault:"http://127.0.0.1:8080"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH" envDefault:"./storage.json"`
 	AuthKey         string `env:"AUTH_KEY" envDefault:"auth"`
-	DatabaseDSN     string `env:"DATABASE_DSN" envDefault:"postgres://christina:123@postgres:5432/praktikum"`
+	DatabaseDSN     string `env:"DATABASE_DSN" envDefault:"postgres://christina:123@postgres:5432/paktikum"`
 }
 
 func NewConfig() (*AppConfig, error) {
