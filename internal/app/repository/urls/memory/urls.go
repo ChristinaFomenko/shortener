@@ -18,11 +18,11 @@ func NewRepo() *repository {
 }
 
 // Add URL
-func (r *repository) Add(id, url string) error {
+func (r *repository) Add(models models.UserURL) error {
 	r.ma.Lock()
 	defer r.ma.Unlock()
 
-	r.store[id] = url
+	r.store[models.UserID] = models.UserID
 	return nil
 }
 

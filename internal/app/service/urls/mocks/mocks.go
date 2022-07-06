@@ -35,17 +35,17 @@ func (m *MockurlRepository) EXPECT() *MockurlRepositoryMockRecorder {
 }
 
 // Add mocks base method.
-func (m *MockurlRepository) Add(id, url string) error {
+func (m *MockurlRepository) Add(arg0 models.UserURL) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Add", id, url)
+	ret := m.ctrl.Call(m, "Add", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Add indicates an expected call of Add.
-func (mr *MockurlRepositoryMockRecorder) Add(id, url interface{}) *gomock.Call {
+func (mr *MockurlRepositoryMockRecorder) Add(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockurlRepository)(nil).Add), id, url)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockurlRepository)(nil).Add), arg0)
 }
 
 // Get mocks base method.

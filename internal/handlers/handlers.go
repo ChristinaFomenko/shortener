@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/ChristinaFomenko/shortener/configs"
+	"github.com/ChristinaFomenko/shortener/internal/app/generator"
 	"github.com/ChristinaFomenko/shortener/internal/models"
 	"github.com/asaskevich/govalidator"
 	"github.com/go-chi/chi/v5"
@@ -23,7 +24,7 @@ var (
 //go:generate mockgen -source=handlers.go -destination=mocks/mocks.go
 
 type service interface {
-	Shorten(url string) (string, error)
+	Shorten(models.UserURL) (string, error)
 	Expand(id string) (string, error)
 	GetList() ([]models.UserURL, error)
 	Ping() error
@@ -48,8 +49,18 @@ func (h *handler) Shorten(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userID, err := generator.GetUserIDFromCookie("user_id")
+	if err != nil {
+		log.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	url := string(bytes)
-	shortcut, err := h.service.Shorten(url)
+	shortcut, err := h.service.Shorten(models.UserURL{
+		ShortURL: url,
+		UserID:   userID,
+	})
 	if err != nil {
 		log.WithError(err).WithField("url", url).Error("shorten url error")
 		http.Error(w, "url shortcut", http.StatusInternalServerError)
@@ -101,7 +112,17 @@ func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shortcut, err := h.service.Shorten(req.URL)
+	userID, err := generator.GetUserIDFromCookie("user_id")
+	if err != nil {
+		log.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	shortcut, err := h.service.Shorten(models.UserURL{
+		ShortURL: req.URL,
+		UserID:   userID,
+	})
 	if err != nil {
 		log.WithError(err).WithField("url", req.URL).Error("shorten url error")
 		http.Error(w, err.Error(), 400)

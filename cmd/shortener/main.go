@@ -55,7 +55,7 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 	router.Use(middlewares.GZIPMiddleware)
-	router.Use(middlewares.AuthCookie)
+	router.Use(middlewares.AuthUser)
 
 	//router.Route("/", func(r chi.Router) {
 	router.Post("/", handlers.New(service).Shorten)
