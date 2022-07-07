@@ -15,11 +15,12 @@ type UserURL struct {
 	OriginalURL string `json:"original_url" db:"original_url"`
 }
 
-type BatchShortenRequest struct {
-	OriginalURL   string `json:"original_url"`
+type BatchURLs []struct {
 	CorrelationID string `json:"correlation_id"`
+	OriginalURL   string `json:"original_url"`
 }
-type BatchShortenResponse struct {
+
+type BatchShortURL struct {
 	CorrelationID string `json:"correlation_id"`
 	ShortURL      string `json:"short_url"`
 }

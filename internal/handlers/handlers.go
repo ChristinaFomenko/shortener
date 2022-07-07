@@ -135,34 +135,36 @@ func (h Handler) Ping(ctx *gin.Context) {
 
 type batchShortenRequest []batchShortenRequest
 
-func (h Handler) BatchShortenHandler(w http.ResponseWriter, r *http.Request) {
-	b, err := io.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, "Could not read batch request body", http.StatusInternalServerError)
+func (h Handler) BatchShortenHandler(ctx *gin.Context) {
+	var batchURLs models.BatchURLs
+	userID, _ := ctx.Cookie("session")
+
+	if err := json.NewDecoder(ctx.Request.Body).Decode(&batchURLs); err != nil {
+		ctx.String(http.StatusInternalServerError, "batch decoding error")
 		return
 	}
 
-	var req batchShortenRequest
+	shortURLs := make([]storage.UserURL, 0)
 
-	if err := json.Unmarshal(b, &req); err != nil {
-		http.Error(w, "Invalid json", http.StatusBadRequest)
+	for _, bu := range batchURLs {
+		shortURLs = append(shortURLs, storage.UserURL{ID: bu.CorrelationID, OriginalURL: bu.OriginalURL, UserID: userID})
 	}
 
-	resp := make([]models.BatchShortenResponse, len(req))
-
-	serializedResp, err := json.Marshal(resp)
-	if err != nil {
-		http.Error(w, "Can't serialize response", http.StatusInternalServerError)
+	if err := h.Storage.AddBatchURL(shortURLs); err != nil {
+		ctx.String(http.StatusInternalServerError, "batch add error")
+		return
 	}
 
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(http.StatusCreated)
+	batchShortURL := make([]models.BatchShortURL, 0)
 
-	_, err = w.Write(serializedResp)
-	if err != nil {
-		log.Printf("Write failed: %v", err)
+	for _, su := range shortURLs {
+		batchShortURL = append(batchShortURL, models.BatchShortURL{
+			CorrelationID: su.ID,
+			ShortURL:      fmt.Sprintf("%s/%s", h.Config.BaseURL, su.ID),
+		})
 	}
 
+	ctx.JSON(http.StatusCreated, batchShortURL)
 }
 
 func createURL(h Handler, ctx *gin.Context, URL string) (shortURLID string, error error) {
@@ -175,12 +177,12 @@ func createURL(h Handler, ctx *gin.Context, URL string) (shortURLID string, erro
 			return "", err
 		}
 
-		if err := h.Storage.AddURL(shortURLID, URL, userDecryptID); err != nil {
+		if err := h.Storage.AddURL(storage.UserURL{ID: shortURLID, OriginalURL: URL, UserID: userDecryptID}); err != nil {
 			ctx.String(http.StatusBadRequest, "")
 			return
 		}
 	} else {
-		if err := h.Storage.AddURL(shortURLID, URL, ""); err != nil {
+		if err := h.Storage.AddURL(storage.UserURL{ID: shortURLID, OriginalURL: URL, UserID: ""}); err != nil {
 			ctx.String(http.StatusBadRequest, "")
 			return
 		}

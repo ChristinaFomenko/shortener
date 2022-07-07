@@ -14,16 +14,16 @@ type LocalStorage struct {
 	mutex    sync.RWMutex
 }
 
-func (ls *LocalStorage) AddURL(ID string, URL string, userID string) error {
+func (ls *LocalStorage) AddURL(userShortURL UserURL) error {
 	ls.mutex.Lock()
 	defer ls.mutex.Unlock()
 
-	if ls.URLsMap[ID] != "" {
-		return fmt.Errorf(`ID=%s; URL already exists`, ID)
+	if ls.URLsMap[userShortURL.ID] != "" {
+		return fmt.Errorf(`ID=%s; URL already exists`, userShortURL.ID)
 	}
 
-	ls.URLsMap[ID] = URL
-	ls.UserURLs[userID] = append(ls.UserURLs[userID], ID)
+	ls.URLsMap[userShortURL.ID] = userShortURL.OriginalURL
+	ls.UserURLs[userShortURL.UserID] = append(ls.UserURLs[userShortURL.UserID], userShortURL.ID)
 
 	return nil
 }
@@ -102,5 +102,16 @@ func (ls *LocalStorage) DestructStorage(cfg configs.AppConfig) error {
 }
 
 func (ls *LocalStorage) Ping() error {
+	return nil
+}
+
+func (ls *LocalStorage) AddBatchURL(urls []UserURL) error {
+	for _, url := range urls {
+		err := ls.AddURL(url)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

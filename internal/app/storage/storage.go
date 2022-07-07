@@ -10,10 +10,11 @@ type URLsMap = map[string]string
 type UserURLs = map[string][]string
 
 type Repository interface {
-	AddURL(ID string, URL string, userID string) error
-	GetURL(ID string) (string, error)
-	GetList(userID string) []UserURL
+	AddURL(userShortURL UserURL) error
+	GetURL(string) (string, error)
+	GetList(string) []UserURL
 	Ping() error
+	AddBatchURL([]UserURL) error
 	DestructStorage(cfg configs.AppConfig) error
 }
 

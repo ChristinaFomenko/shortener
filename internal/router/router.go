@@ -25,7 +25,7 @@ func Router(c configs.AppConfig, s storage.Repository) *gin.Engine {
 	router.POST("/api/shorten", handler.APIJSONShorten)
 	router.GET("/api/user/urls", handler.GetList)
 	router.GET("/ping", handler.Ping)
-	//router.POST("/api/shorten/batch", handlers.BatchShortenHandler)
+	router.POST("/api/shorten/batch", handler.BatchShortenHandler)
 	//})
 	return router
 }

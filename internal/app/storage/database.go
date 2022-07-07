@@ -7,8 +7,8 @@ import (
 	"time"
 )
 
-func (db *Database) AddURL(ID string, URL string, userID string) error {
-	_, err := db.DB.Exec(context.Background(), "INSERT INTO urls VALUES ($1, $2, $3)", ID, URL, userID)
+func (db *Database) AddURL(userShortURL UserURL) error {
+	_, err := db.DB.Exec(context.Background(), "INSERT INTO urls VALUES ($1, $2, $3)", userShortURL.ID, userShortURL.OriginalURL, userShortURL.UserID)
 
 	return err
 }
@@ -79,4 +79,23 @@ func (db Database) Ping() error {
 	err := db.DB.Ping(conn)
 
 	return err
+}
+
+func (db *Database) AddBatchURL(shortURLs []UserURL) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	stmt, err := db.DB.Prepare(ctx, "addBatch", "INSERT INTO urls VALUES ($1, $2, $3)")
+	if err != nil {
+		return err
+	}
+
+	for _, su := range shortURLs {
+		_, err := db.DB.Exec(ctx, stmt.SQL, su.ID, su.OriginalURL, "")
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
