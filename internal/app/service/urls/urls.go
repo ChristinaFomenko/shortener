@@ -12,7 +12,7 @@ import (
 //go:generate mockgen -source=urls.go -destination=mocks/mocks.go
 
 type urlRepository interface {
-	Add(models.UserURL) error
+	Add(id, url string) error
 	Get(id string) (string, error)
 	GetList() ([]models.UserURL, error)
 	Ping() error
@@ -46,12 +46,9 @@ func NewService(
 	}
 }
 
-func (s *service) Shorten(url models.UserURL) (string, error) {
+func (s *service) Shorten(url string) (string, error) {
 	id := s.generator.GenerateID()
-	err := s.repository.Add(models.UserURL{
-		OriginalURL: url.OriginalURL,
-		UserID:      id,
-	})
+	err := s.repository.Add(id, url)
 	if err != nil {
 		log.WithError(err).WithField("id", id).WithField("url", url).Error("add url error")
 		return "", err

@@ -79,16 +79,16 @@ func (mr *MockserviceMockRecorder) Ping() *gomock.Call {
 }
 
 // Shorten mocks base method.
-func (m *Mockservice) Shorten(arg0 models.UserURL) (string, error) {
+func (m *Mockservice) Shorten(url string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Shorten", arg0)
+	ret := m.ctrl.Call(m, "Shorten", url)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Shorten indicates an expected call of Shorten.
-func (mr *MockserviceMockRecorder) Shorten(arg0 interface{}) *gomock.Call {
+func (mr *MockserviceMockRecorder) Shorten(url interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shorten", reflect.TypeOf((*Mockservice)(nil).Shorten), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shorten", reflect.TypeOf((*Mockservice)(nil).Shorten), url)
 }

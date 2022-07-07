@@ -54,11 +54,11 @@ func readLines(filePath string) (map[string]string, error) {
 }
 
 // Add URL
-func (r *fileRepository) Add(models models.UserURL) error {
+func (r *fileRepository) Add(id, url string) error {
 	r.ma.Lock()
 	defer r.ma.Unlock()
 
-	r.store[models.UserID] = models.ShortURL
+	r.store[id] = url
 
 	file, err := os.OpenFile(r.filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
 	if err != nil {

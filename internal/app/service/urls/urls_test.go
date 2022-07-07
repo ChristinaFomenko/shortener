@@ -15,24 +15,21 @@ const host = "http://localhost:8080"
 func Test_service_Shorten(t *testing.T) {
 	tests := []struct {
 		name     string
-		userURL  models.UserURL
+		id       string
+		url      string
 		shortcut string
 		err      error
 	}{
 		{
-			name: "success",
-			userURL: models.UserURL{
-				UserID:      "abcde",
-				OriginalURL: "yandex.ru",
-			},
+			name:     "success",
+			id:       "abcde",
+			url:      "yandex.ru",
 			shortcut: "http://localhost:8080/abcde",
 		},
 		{
-			name: "success",
-			userURL: models.UserURL{
-				UserID:      "abcde",
-				OriginalURL: "yandex.ru",
-			},
+			name:     "success",
+			id:       "abcde",
+			url:      "yandex.ru",
 			shortcut: "",
 			err:      errors.New("test err"),
 		},
@@ -43,13 +40,13 @@ func Test_service_Shorten(t *testing.T) {
 
 	for _, tt := range tests {
 		generatorMock := mocks.NewMockgenerator(ctrl)
-		generatorMock.EXPECT().GenerateID().Return(tt.userURL.UserID)
+		generatorMock.EXPECT().GenerateID().Return(tt.id)
 
 		repositoryMock := mocks.NewMockurlRepository(ctrl)
-		repositoryMock.EXPECT().Add(tt.userURL).Return(tt.err)
+		repositoryMock.EXPECT().Add(tt.id, tt.url).Return(tt.err)
 
 		s := NewService(repositoryMock, generatorMock, host, nil, nil)
-		act, err := s.Shorten(tt.userURL)
+		act, err := s.Shorten(tt.url)
 
 		assert.Equal(t, tt.err, err)
 		assert.Equal(t, tt.shortcut, act)
