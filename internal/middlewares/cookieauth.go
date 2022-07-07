@@ -11,7 +11,7 @@ import (
 
 func SessionAuthMiddleware(conf configs.AppConfig) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		cookie, err := ctx.Cookie("user_id")
+		cookie, err := ctx.Cookie("session")
 
 		if cookie == "" || err != nil {
 			encryptedID, err := utils.Encrypt(uuid.New().String(), conf.AuthKey)
