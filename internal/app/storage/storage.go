@@ -6,6 +6,8 @@ import (
 	"github.com/jackc/pgx/v4"
 )
 
+//go:generate mockgen -source=storage.go -destination=mocks/mocks.go -package=mocks
+
 type URLsMap = map[string]string
 type UserURLs = map[string][]string
 
@@ -15,7 +17,7 @@ type Repository interface {
 	GetList(string) []UserURL
 	Ping() error
 	AddBatchURL([]UserURL) error
-	DestructStorage(cfg configs.AppConfig) error
+	Destruct(cfg configs.AppConfig) error
 	GetShortByOriginal(string) (string, error)
 }
 
@@ -23,16 +25,16 @@ type Database struct {
 	DB *pgx.Conn
 }
 
-func ConstructStorage(cfg configs.AppConfig) Repository {
+func New(cfg configs.AppConfig) Repository {
 	if cfg.DatabaseDSN != "" {
-		dbStore, err := ConstructDatabaseStorage(cfg)
+		dbStore, err := constructDatabaseStorage(cfg)
 		if err != nil {
-			fmt.Println("ConstructDatabaseStorage ERROR: ", err)
-			return ConstructLocalStorage(cfg)
+			fmt.Println("constructLocalStorage ERROR: ", err)
+			return constructLocalStorage(cfg)
 		}
 
 		return dbStore
 	}
 
-	return ConstructLocalStorage(cfg)
+	return constructLocalStorage(cfg)
 }

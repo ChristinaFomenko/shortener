@@ -54,7 +54,7 @@ func (db *Database) GetList(userID string) []UserURL {
 	return shortURLs
 }
 
-func ConstructDatabaseStorage(cfg configs.AppConfig) (Repository, error) {
+func constructDatabaseStorage(cfg configs.AppConfig) (Repository, error) {
 	conn, err := pgx.Connect(context.Background(), cfg.DatabaseDSN)
 	if err != nil {
 		return nil, err
@@ -75,7 +75,7 @@ func ConstructDatabaseStorage(cfg configs.AppConfig) (Repository, error) {
 	return db, nil
 }
 
-func (db Database) DestructStorage(cfg configs.AppConfig) error {
+func (db Database) Destruct(cfg configs.AppConfig) error {
 	err := db.DB.Close(context.Background())
 
 	return err

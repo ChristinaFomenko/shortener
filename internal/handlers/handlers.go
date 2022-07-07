@@ -17,8 +17,6 @@ import (
 	"net/http"
 )
 
-//go:generate mockgen -source=handlers.go -destination=mocks/mocks.go
-
 type Handler struct {
 	Config  configs.AppConfig
 	Storage storage.Repository
@@ -52,7 +50,7 @@ func (h Handler) Shorten(ctx *gin.Context) {
 		return
 	}
 
-	ctx.Header("content-type", "text/plain; charset=utf-8")
+	ctx.Header("content-type", "text/plain")
 	ctx.String(http.StatusCreated, "%s", shortcut)
 
 }
@@ -105,8 +103,6 @@ func (h Handler) APIJSONShorten(ctx *gin.Context) {
 
 	shortcut := fmt.Sprintf("%s/%s", h.Config.BaseURL, id)
 
-	ctx.Header("content-type", "application/json; charset=utf-8")
-
 	resp := models.ShortenReply{ShortenURLResult: shortcut}
 
 	ctx.JSON(http.StatusCreated, resp)
@@ -132,8 +128,6 @@ func (h Handler) GetList(ctx *gin.Context) {
 		return
 	}
 
-	ctx.Header("content-type", "application/json")
-
 	var userURL []models.UserURL
 	for _, shorted := range urls {
 		shortURL := fmt.Sprintf("%s/%s", h.Config.BaseURL, shorted.ID)
@@ -152,8 +146,6 @@ func (h Handler) Ping(ctx *gin.Context) {
 
 	ctx.String(http.StatusOK, "Database is running")
 }
-
-type batchShortenRequest []batchShortenRequest
 
 func (h Handler) BatchShortenHandler(ctx *gin.Context) {
 	var batchURLs models.BatchURLs
@@ -202,7 +194,6 @@ func createURL(h Handler, ctx *gin.Context, URL string) (shortURLID string, erro
 		}
 	} else {
 		if err := h.Storage.AddURL(storage.UserURL{ID: shortURLID, OriginalURL: URL, UserID: ""}); err != nil {
-			ctx.String(http.StatusBadRequest, "")
 			return "", err
 		}
 	}

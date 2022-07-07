@@ -25,7 +25,7 @@ func SessionAuthMiddleware(conf configs.AppConfig) gin.HandlerFunc {
 				Value: url.QueryEscape(encryptedID),
 			})
 
-			ctx.SetCookie("user_id", encryptedID, 3600, "/", conf.ServerAddress, false, false)
+			ctx.SetCookie("session", encryptedID, 3600, "/", conf.ServerAddress, false, false)
 		}
 
 		ctx.Next()

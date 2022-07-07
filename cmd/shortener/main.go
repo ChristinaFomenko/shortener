@@ -27,7 +27,7 @@ func main() {
 	flag.StringVar(&cfg.DatabaseDSN, "d", cfg.DatabaseDSN, "postgres://username:password@host:port/database")
 	flag.Parse()
 
-	s := storage.ConstructStorage(cfg)
+	s := storage.New(cfg)
 
 	r := router.Router(cfg, s)
 
@@ -36,7 +36,7 @@ func main() {
 
 	go func() {
 		<-sigs
-		if err := s.DestructStorage(cfg); err != nil {
+		if err := s.Destruct(cfg); err != nil {
 			fmt.Printf("ERROR: %s", err)
 		}
 		os.Exit(0)

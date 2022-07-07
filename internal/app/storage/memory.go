@@ -64,7 +64,7 @@ func (ls *LocalStorage) GetList(userID string) []UserURL {
 	return URLs
 }
 
-func ConstructLocalStorage(cfg configs.AppConfig) Repository {
+func constructLocalStorage(cfg configs.AppConfig) Repository {
 	ls := &LocalStorage{make(URLsMap), make(UserURLs), sync.RWMutex{}}
 
 	file, err := os.OpenFile(cfg.FileStoragePath, os.O_RDONLY|os.O_CREATE, 0664)
@@ -87,7 +87,7 @@ func ConstructLocalStorage(cfg configs.AppConfig) Repository {
 	return ls
 }
 
-func (ls *LocalStorage) DestructStorage(cfg configs.AppConfig) error {
+func (ls *LocalStorage) Destruct(cfg configs.AppConfig) error {
 	file, err := os.OpenFile(cfg.FileStoragePath, os.O_WRONLY, 0664)
 	if err != nil {
 		return fmt.Errorf("OpenFile error; %s", err)
