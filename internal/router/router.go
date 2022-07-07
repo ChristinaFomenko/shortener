@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Router(c configs.AppConfig, s *storage.Storage) *gin.Engine {
+func Router(c configs.AppConfig, s storage.Repository) *gin.Engine {
 	router := gin.Default()
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())

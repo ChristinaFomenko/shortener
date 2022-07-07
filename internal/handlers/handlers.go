@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/ChristinaFomenko/shortener/configs"
@@ -15,7 +14,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
-	"time"
 )
 
 //go:generate mockgen -source=handlers.go -destination=mocks/mocks.go
@@ -117,26 +115,22 @@ func (h Handler) GetList(ctx *gin.Context) {
 	ctx.Header("content-type", "application/json")
 
 	var userURL []models.UserURL
-	for _, shortID := range userURL {
-		shortURL := fmt.Sprintf("%s/%s", h.Config.BaseURL, shortID)
-		url, _ := h.Storage.GetURL(shortID.ShortURL)
-		userURL = append(userURL, models.UserURL{ShortURL: shortURL, OriginalURL: url})
+	for _, shorted := range urls {
+		shortURL := fmt.Sprintf("%s/%s", h.Config.BaseURL, shorted.ID)
+		userURL = append(userURL, models.UserURL{ShortURL: shortURL, OriginalURL: shorted.OriginalURL})
 	}
 
 	ctx.JSON(http.StatusOK, userURL)
 }
 
 func (h Handler) Ping(ctx *gin.Context) {
-	timoutCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	err := h.Storage.GetDBConn().Ping(timoutCtx)
+	err := h.Storage.Ping()
 	if err != nil {
 		ctx.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	ctx.String(http.StatusOK, "")
+	ctx.String(http.StatusOK, "Database is running")
 }
 
 type batchShortenRequest []batchShortenRequest

@@ -32,7 +32,7 @@ func main() {
 
 	go func() {
 		<-sigs
-		if err := storage.DestructStorage(cfg.FileStoragePath, s); err != nil {
+		if err := s.DestructStorage(conf); err != nil {
 			fmt.Printf("ERROR: %s", err)
 		}
 		os.Exit(0)
