@@ -1,35 +1,33 @@
 package middlewares
 
 import (
-	"context"
-	"github.com/ChristinaFomenko/shortener/internal/app/generator"
+	"github.com/ChristinaFomenko/shortener/configs"
+	"github.com/ChristinaFomenko/shortener/internal/app/utils"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"net/http"
+	"net/url"
 )
 
-type Ctxkey struct{}
+func SessionAuthMiddleware(conf configs.AppConfig) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		cookie, err := ctx.Cookie("user_id")
 
-func AuthUser(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var (
-			uid         string
-			cookieValue string
-		)
-		idCookie, err := r.Cookie("user_id")
-		if err != nil {
-			uid, cookieValue = generator.GenerateNewUserCookie()
-			cookie := http.Cookie{Name: "user_id", Value: cookieValue}
-			http.SetCookie(w, &cookie)
-		} else {
-			cookieValue = idCookie.Value
-			uid, err = generator.GetUserIDFromCookie(cookieValue)
+		if cookie == "" || err != nil {
+			encryptedID, err := utils.Encrypt(uuid.New().String(), conf.AuthKey)
 			if err != nil {
-				uid, cookieValue = generator.GenerateNewUserCookie()
-				cookie := http.Cookie{Name: "uid", Value: cookieValue}
-				http.SetCookie(w, &cookie)
+				ctx.String(http.StatusInternalServerError, err.Error())
+				return
 			}
 
-		}
-		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), Ctxkey{}, uid)))
-	})
+			ctx.Request.AddCookie(&http.Cookie{
+				Name:  "session",
+				Value: url.QueryEscape(encryptedID),
+			})
 
+			ctx.SetCookie("user_id", encryptedID, 3600, "/", conf.ServerAddress, false, false)
+		}
+
+		ctx.Next()
+	}
 }

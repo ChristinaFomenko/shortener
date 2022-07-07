@@ -1,72 +1,44 @@
 package main
 
 import (
-	"database/sql"
+	"fmt"
 	"github.com/ChristinaFomenko/shortener/configs"
-	"github.com/ChristinaFomenko/shortener/internal/app/database"
-	"github.com/ChristinaFomenko/shortener/internal/app/generator"
-	repositoryURL "github.com/ChristinaFomenko/shortener/internal/app/repository/urls"
-	serviceURL "github.com/ChristinaFomenko/shortener/internal/app/service/urls"
-	"github.com/ChristinaFomenko/shortener/internal/handlers"
-	"github.com/ChristinaFomenko/shortener/internal/middlewares"
-	"github.com/caarlos0/env"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"github.com/ChristinaFomenko/shortener/internal/app/storage"
+	"github.com/ChristinaFomenko/shortener/internal/router"
+	"github.com/caarlos0/env/v6"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
-var conf *configs.AppConfig
+var conf configs.AppConfig
 
 func main() {
 	// Config
 	cfg, err := configs.NewConfig()
-	if err != nil {
-		err = env.Parse(cfg)
+	if err = env.Parse(cfg); err != nil {
 		log.Fatalf("failed to retrieve env variables, %v", err)
 	}
 
-	// Database
-	db, err := sql.Open("pgx", cfg.DatabaseDSN)
-	if err != nil {
-		log.Fatalf("failed to connnect db %v", err)
-	}
-	defer db.Close()
+	s := storage.ConstructStorage(conf)
 
-	_, err = db.Exec(database.CreateTable)
-	if err != nil {
-		log.Infof("failed to create create table %v", err)
-	}
+	r := router.Router(conf, s)
 
-	// Repositories
-	repository, err := repositoryURL.NewStorage(cfg.FileStoragePath)
-	if err != nil {
-		log.Fatalf("failed to create a storage %v", err)
-	}
-	// Services
-	helper := generator.NewGenerator()
-	service := serviceURL.NewService(repository, helper, cfg.BaseURL, db, conf)
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
-	// Route
-	router := chi.NewRouter()
-	router.Use(middleware.RequestID)
-	router.Use(middleware.Logger)
-	router.Use(middleware.Recoverer)
-	router.Use(middleware.URLFormat)
-	router.Use(middlewares.GZIPMiddleware)
-	router.Use(middlewares.AuthUser)
-
-	//router.Route("/", func(r chi.Router) {
-	router.Post("/", handlers.New(service).Shorten)
-	router.Get("/{id}", handlers.New(service).Expand)
-	router.Post("/api/shorten", handlers.New(service).APIJSONShorten)
-	router.Get("/api/user/urls", handlers.New(service).GetList)
-	router.Get("/ping", handlers.New(service).Ping)
-	//router.Post("/api/shorten/batch", handlers.New(service).BatchShortenHandler)
-	//})
+	go func() {
+		<-sigs
+		if err := storage.DestructStorage(cfg.FileStoragePath, s); err != nil {
+			fmt.Printf("ERROR: %s", err)
+		}
+		os.Exit(0)
+	}()
 
 	address := cfg.ServerAddress
 	log.WithField("address", address).Info("server starts")
-	log.Fatal(http.ListenAndServe(address, router), nil)
+	log.Fatal(http.ListenAndServe(address, r), nil)
 }

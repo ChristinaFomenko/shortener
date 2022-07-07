@@ -1,166 +1,147 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
+	"github.com/ChristinaFomenko/shortener/configs"
+	"github.com/ChristinaFomenko/shortener/internal/app/storage"
+	"github.com/ChristinaFomenko/shortener/internal/app/utils"
 	"github.com/ChristinaFomenko/shortener/internal/models"
 	"github.com/asaskevich/govalidator"
-	"github.com/go-chi/chi/v5"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
+	"time"
 )
 
 //go:generate mockgen -source=handlers.go -destination=mocks/mocks.go
 
-type service interface {
-	Shorten(url string) (string, error)
-	Expand(id string) (string, error)
-	GetList() ([]models.UserURL, error)
-	Ping() error
-}
-
-type handler struct {
-	service service
-}
-
-func New(service service) *handler {
-	return &handler{
-		service: service,
-	}
+type Handler struct {
+	Config  configs.AppConfig
+	Storage storage.Repository
 }
 
 // Shorten Cut URL
-func (h *handler) Shorten(w http.ResponseWriter, r *http.Request) {
-	bytes, err := io.ReadAll(r.Body)
+func (h Handler) Shorten(ctx *gin.Context) {
+	bytes, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
 		log.Error(err)
-		http.Error(w, "failed to validate struct", 400)
+		ctx.String(http.StatusInternalServerError, "failed to validate struct")
 		return
 	}
 
-	url := string(bytes)
-	shortcut, err := h.service.Shorten(url)
+	id, err := createURL(h, ctx, string(bytes))
+
+	shortcut := fmt.Sprintf("%s/%s", h.Config.BaseURL, id)
 	if err != nil {
-		log.WithError(err).WithField("url", url).Error("shorten url error")
-		http.Error(w, "url shortcut", http.StatusInternalServerError)
+		log.WithError(err).WithField("url", shortcut).Error("shorten url error")
+		ctx.String(http.StatusInternalServerError, "url shortcut")
 		return
 	}
 
-	w.Header().Set("content-type", "text/plain; charset=utf-8")
-	w.WriteHeader(http.StatusCreated)
-	_, err = w.Write([]byte(shortcut))
-	if err != nil {
-		log.WithError(err).WithField("id", shortcut).Error("write response error")
-		return
-	}
+	ctx.Header("content-type", "text/plain; charset=utf-8")
+	ctx.String(http.StatusCreated, "%s", shortcut)
+
 }
 
 // Expand Returns full URL by ID of shorted one
-func (h *handler) Expand(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+func (h Handler) Expand(ctx *gin.Context) {
+	id := ctx.Param("id")
 	if id == "" {
-		http.Error(w, "id parameter is empty", http.StatusBadRequest)
+		ctx.String(http.StatusBadRequest, "id parameter is empty")
 		return
 	}
 
-	url, err := h.service.Expand(id)
+	originalURL, err := h.Storage.GetURL(id)
 	if err != nil {
-		http.Error(w, "url not found", http.StatusNoContent)
+		ctx.String(http.StatusNoContent, "url not found")
 		return
 	}
+	ctx.Header("content-type", "text/plain")
 
-	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+	ctx.Redirect(http.StatusTemporaryRedirect, originalURL)
 }
 
-func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
-	b, err := io.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, err.Error(), 400)
-		return
-	}
-
+func (h Handler) APIJSONShorten(ctx *gin.Context) {
 	req := models.ShortenRequest{}
-	if err = json.Unmarshal(b, &req); err != nil {
-		http.Error(w, "request in not valid", http.StatusBadRequest)
+	if err := json.NewDecoder(ctx.Request.Body).Decode(&req); err != nil {
+		ctx.String(http.StatusBadRequest, "request in not valid")
 		return
 	}
 
 	ok, err := govalidator.ValidateStruct(req)
 	if err != nil || !ok {
-		http.Error(w, "request in not valid", http.StatusBadRequest)
+		ctx.String(http.StatusBadRequest, "request in not valid")
 		return
 	}
 
-	shortcut, err := h.service.Shorten(req.URL)
+	id, err := createURL(h, ctx, req.URL)
 	if err != nil {
-		log.WithError(err).WithField("url", req.URL).Error("shorten url error")
-		http.Error(w, err.Error(), 400)
+		ctx.String(http.StatusInternalServerError, "failed to create url")
 		return
 	}
 
-	w.Header().Set("content-type", "application/json")
-	w.WriteHeader(http.StatusCreated)
+	shortcut := fmt.Sprintf("%s/%s", h.Config.BaseURL, id)
+
+	ctx.Header("content-type", "application/json; charset=utf-8")
 
 	resp := models.ShortenReply{ShortenURLResult: shortcut}
-	marshal, err := json.Marshal(&resp)
-	if err != nil {
-		log.WithError(err).WithField("resp", resp).Error("marshal response error")
-		http.Error(w, err.Error(), 400)
-		return
-	}
 
-	_, err = w.Write(marshal)
-	if err != nil {
-		log.WithError(err).WithField("shortcut", shortcut).Error("write response error")
-		return
-	}
+	ctx.JSON(http.StatusCreated, resp)
 }
 
-func (h *handler) GetList(w http.ResponseWriter, r *http.Request) {
-	urls, err := h.service.GetList()
+func (h Handler) GetList(ctx *gin.Context) {
+	userID, err := ctx.Cookie("user_id")
 	if err != nil {
-		log.WithError(err).Error("get urls error")
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.WithError(err).Error("failed to set cookie")
+		ctx.String(http.StatusInternalServerError, "failed to set cookie")
 		return
 	}
 
+	userDecryptID, err := utils.Decrypt(userID, h.Config.AuthKey)
+	if err != nil {
+		ctx.String(http.StatusInternalServerError, "failed decrypt user id")
+		return
+	}
+
+	urls := h.Storage.GetList(userDecryptID)
 	if len(urls) == 0 {
-		w.WriteHeader(http.StatusNoContent)
+		ctx.JSON(http.StatusNoContent, "{}")
 		return
 	}
 
-	w.Header().Set("content-type", "application/json")
+	ctx.Header("content-type", "application/json")
 
-	resp := toGetUrlsReply(urls)
-	body, err := json.Marshal(&resp)
-	if err != nil {
-		log.WithError(err).WithField("resp", urls).Error("marshal urls response error")
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-	_, err = w.Write(body)
-	if err != nil {
-		log.WithError(err).WithField("resp", urls).Error("write response error")
-		return
+	var userURL []models.UserURL
+	for _, shortID := range userURL {
+		shortURL := fmt.Sprintf("%s/%s", h.Config.BaseURL, shortID)
+		url, _ := h.Storage.GetURL(shortID.ShortURL)
+		userURL = append(userURL, models.UserURL{ShortURL: shortURL, OriginalURL: url})
 	}
 
-	w.WriteHeader(http.StatusOK)
+	ctx.JSON(http.StatusOK, userURL)
 }
 
-func (h *handler) Ping(w http.ResponseWriter, r *http.Request) {
-	err := h.service.Ping()
+func (h Handler) Ping(ctx *gin.Context) {
+	timoutCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	err := h.Storage.GetDBConn().Ping(timoutCtx)
 	if err != nil {
-		log.Infof("DB not avalable %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		ctx.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	ctx.String(http.StatusOK, "")
 }
 
 type batchShortenRequest []batchShortenRequest
 
-func (h *handler) BatchShortenHandler(w http.ResponseWriter, r *http.Request) {
+func (h Handler) BatchShortenHandler(w http.ResponseWriter, r *http.Request) {
 	b, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Could not read batch request body", http.StatusInternalServerError)
@@ -188,4 +169,28 @@ func (h *handler) BatchShortenHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Write failed: %v", err)
 	}
 
+}
+
+func createURL(h Handler, ctx *gin.Context, URL string) (shortURLID string, error error) {
+	userEncryptID, err := ctx.Cookie("session")
+	shortURLID = uuid.New().String()
+
+	if userEncryptID != "" && err == nil {
+		userDecryptID, err := utils.Decrypt(userEncryptID, h.Config.AuthKey)
+		if err != nil {
+			return "", err
+		}
+
+		if err := h.Storage.AddURL(shortURLID, URL, userDecryptID); err != nil {
+			ctx.String(http.StatusBadRequest, "")
+			return
+		}
+	} else {
+		if err := h.Storage.AddURL(shortURLID, URL, ""); err != nil {
+			ctx.String(http.StatusBadRequest, "")
+			return
+		}
+	}
+
+	return shortURLID, nil
 }
