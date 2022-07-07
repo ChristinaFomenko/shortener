@@ -16,6 +16,7 @@ type Repository interface {
 	Ping() error
 	AddBatchURL([]UserURL) error
 	DestructStorage(cfg configs.AppConfig) error
+	GetShortByOriginal(string) (string, error)
 }
 
 type Database struct {

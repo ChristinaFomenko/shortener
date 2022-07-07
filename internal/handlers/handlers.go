@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/ChristinaFomenko/shortener/configs"
 	"github.com/ChristinaFomenko/shortener/internal/app/storage"
@@ -32,7 +33,17 @@ func (h Handler) Shorten(ctx *gin.Context) {
 		return
 	}
 
+	url := string(bytes)
 	id, err := createURL(h, ctx, string(bytes))
+	if err != nil {
+		var urlDupl *storage.URLDuplicateError
+		if errors.As(err, &urlDupl) {
+			existID, _ := h.Storage.GetShortByOriginal(url)
+			existURL := fmt.Sprintf("%s/%s", h.Config.BaseURL, existID)
+			ctx.String(http.StatusConflict, existURL)
+			return
+		}
+	}
 
 	shortcut := fmt.Sprintf("%s/%s", h.Config.BaseURL, id)
 	if err != nil {
@@ -79,6 +90,15 @@ func (h Handler) APIJSONShorten(ctx *gin.Context) {
 
 	id, err := createURL(h, ctx, req.URL)
 	if err != nil {
+		var urlDupl *storage.URLDuplicateError
+		if errors.As(err, &urlDupl) {
+			existID, _ := h.Storage.GetShortByOriginal(req.URL)
+			existURL := fmt.Sprintf("%s/%s", h.Config.BaseURL, existID)
+			res := models.ShortenReply{ShortenURLResult: existURL}
+
+			ctx.JSON(http.StatusConflict, res)
+			return
+		}
 		ctx.String(http.StatusInternalServerError, "failed to create url")
 		return
 	}
@@ -178,13 +198,12 @@ func createURL(h Handler, ctx *gin.Context, URL string) (shortURLID string, erro
 		}
 
 		if err := h.Storage.AddURL(storage.UserURL{ID: shortURLID, OriginalURL: URL, UserID: userDecryptID}); err != nil {
-			ctx.String(http.StatusBadRequest, "")
-			return
+			return "", err
 		}
 	} else {
 		if err := h.Storage.AddURL(storage.UserURL{ID: shortURLID, OriginalURL: URL, UserID: ""}); err != nil {
 			ctx.String(http.StatusBadRequest, "")
-			return
+			return "", err
 		}
 	}
 

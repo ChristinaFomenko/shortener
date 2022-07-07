@@ -5,3 +5,7 @@ type UserURL struct {
 	OriginalURL string
 	UserID      string
 }
+
+type URLDuplicateError struct {
+	URL string
+}

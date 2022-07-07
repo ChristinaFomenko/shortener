@@ -2,13 +2,24 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"github.com/ChristinaFomenko/shortener/configs"
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v4"
 	"time"
 )
 
 func (db *Database) AddURL(userShortURL UserURL) error {
 	_, err := db.DB.Exec(context.Background(), "INSERT INTO urls VALUES ($1, $2, $3)", userShortURL.ID, userShortURL.OriginalURL, userShortURL.UserID)
+
+	var pgError *pgconn.PgError
+
+	if errors.As(err, &pgError) {
+		if pgError.Code == pgerrcode.UniqueViolation {
+			return &URLDuplicateError{URL: userShortURL.OriginalURL}
+		}
+	}
 
 	return err
 }
@@ -51,14 +62,13 @@ func ConstructDatabaseStorage(cfg configs.AppConfig) (Repository, error) {
 
 	db := &Database{DB: conn}
 
-	const CreateTable = `
+	const createTable = `
 		CREATE TABLE IF NOT EXISTS urls (
 			url_id varchar(36) NOT NULL UNIQUE PRIMARY KEY,
-			original_url varchar(255),
+			original_url varchar(255) UNIQUE,
 			user_id varchar(36)
 		)`
-	_, err = db.DB.Exec(context.Background(), CreateTable)
-	if err != nil {
+	if _, err = db.DB.Exec(context.Background(), createTable); err != nil {
 		return nil, err
 	}
 
@@ -98,4 +108,13 @@ func (db *Database) AddBatchURL(shortURLs []UserURL) error {
 	}
 
 	return nil
+}
+
+func (db *Database) GetShortByOriginal(originalURL string) (string, error) {
+	var ID string
+	if err := db.DB.QueryRow(context.Background(), "SELECT url_id FROM urls WHERE original_url = $1", originalURL).Scan(&ID); err != nil {
+		return "", err
+	}
+
+	return ID, nil
 }

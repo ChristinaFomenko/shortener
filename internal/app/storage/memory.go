@@ -14,12 +14,21 @@ type LocalStorage struct {
 	mutex    sync.RWMutex
 }
 
+func (err *URLDuplicateError) Error() string {
+	return fmt.Sprintf("URL %s - already exists.", err.URL)
+}
+
 func (ls *LocalStorage) AddURL(userShortURL UserURL) error {
 	ls.mutex.Lock()
 	defer ls.mutex.Unlock()
 
 	if ls.URLsMap[userShortURL.ID] != "" {
 		return fmt.Errorf(`ID=%s; URL already exists`, userShortURL.ID)
+	}
+
+	existID, _ := ls.GetShortByOriginal(userShortURL.OriginalURL)
+	if existID != "" {
+		return &URLDuplicateError{URL: userShortURL.OriginalURL}
 	}
 
 	ls.URLsMap[userShortURL.ID] = userShortURL.OriginalURL
@@ -114,4 +123,14 @@ func (ls *LocalStorage) AddBatchURL(urls []UserURL) error {
 	}
 
 	return nil
+}
+
+func (ls *LocalStorage) GetShortByOriginal(originalURL string) (string, error) {
+	for ID, URL := range ls.URLsMap {
+		if URL == originalURL {
+			return ID, nil
+		}
+	}
+
+	return "", fmt.Errorf("URL not found")
 }
