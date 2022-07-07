@@ -26,6 +26,5 @@ func Router(c configs.AppConfig, s storage.Repository) *gin.Engine {
 	router.GET("/api/user/urls", handler.GetList)
 	router.GET("/ping", handler.Ping)
 	router.POST("/api/shorten/batch", handler.BatchShortenHandler)
-	//})
 	return router
 }

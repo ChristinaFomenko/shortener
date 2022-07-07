@@ -11,18 +11,18 @@ import (
 type URLsMap = map[string]string
 type UserURLs = map[string][]string
 
+type Database struct {
+	DB *pgx.Conn
+}
+
 type Repository interface {
-	AddURL(userShortURL UserURL) error
+	AddURL(UserURL) error
 	GetURL(string) (string, error)
 	GetList(string) []UserURL
 	Ping() error
 	AddBatchURL([]UserURL) error
 	Destruct(cfg configs.AppConfig) error
 	GetShortByOriginal(string) (string, error)
-}
-
-type Database struct {
-	DB *pgx.Conn
 }
 
 func New(cfg configs.AppConfig) Repository {
