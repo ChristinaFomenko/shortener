@@ -2,8 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"errors"
-	"github.com/ChristinaFomenko/shortener/configs"
 	"github.com/ChristinaFomenko/shortener/internal/models"
 	"github.com/asaskevich/govalidator"
 	"github.com/go-chi/chi/v5"
@@ -11,13 +9,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
-)
-
-var cfg = configs.AppConfig{}
-
-var (
-	ErrNoTokenFound = errors.New("no token found")
-	ErrInvalidToken = errors.New("token is invalid")
 )
 
 //go:generate mockgen -source=handlers.go -destination=mocks/mocks.go
@@ -176,15 +167,6 @@ func (h *handler) BatchShortenHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie := http.Cookie{Name: "user_id", Value: "abcd"}
-	if err != nil {
-		if errors.Is(err, ErrNoTokenFound) || errors.Is(err, ErrInvalidToken) {
-			http.SetCookie(w, &cookie)
-		} else {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
-	}
 	var req batchShortenRequest
 
 	if err := json.Unmarshal(b, &req); err != nil {
