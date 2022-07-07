@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/ChristinaFomenko/shortener/configs"
 	"github.com/ChristinaFomenko/shortener/internal/app/storage"
@@ -14,25 +15,28 @@ import (
 	"syscall"
 )
 
-var conf configs.AppConfig
-
 func main() {
-	// Config
-	cfg, err := configs.NewConfig()
-	if err = env.Parse(cfg); err != nil {
-		log.Fatalf("failed to retrieve env variables, %v", err)
+	cfg := configs.AppConfig{}
+	if err := env.Parse(&cfg); err != nil {
+		return
 	}
 
-	s := storage.ConstructStorage(conf)
+	flag.StringVar(&cfg.ServerAddress, "a", cfg.ServerAddress, "127.0.0.1:8080")
+	flag.StringVar(&cfg.BaseURL, "b", cfg.BaseURL, "http://localhost:8080")
+	flag.StringVar(&cfg.FileStoragePath, "f", cfg.FileStoragePath, "./storage.json")
+	flag.StringVar(&cfg.DatabaseDSN, "d", cfg.DatabaseDSN, "postgres://username:password@host:port/database")
+	flag.Parse()
 
-	r := router.Router(conf, s)
+	s := storage.ConstructStorage(cfg)
+
+	r := router.Router(cfg, s)
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
 		<-sigs
-		if err := s.DestructStorage(conf); err != nil {
+		if err := s.DestructStorage(cfg); err != nil {
 			fmt.Printf("ERROR: %s", err)
 		}
 		os.Exit(0)
