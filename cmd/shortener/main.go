@@ -36,6 +36,7 @@ func main() {
 	if err != nil {
 		log.Infof("failed to create create table %v", err)
 	}
+	database := database.NewDatabase(db)
 
 	// Repositories
 	repository, err := repositoryURL.NewStorage(cfg.FileStoragePath)
@@ -44,7 +45,7 @@ func main() {
 	}
 	// Services
 	helper := generator.NewGenerator()
-	service := serviceURL.NewService(repository, helper, cfg.BaseURL, db)
+	service := serviceURL.NewService(repository, helper, cfg.BaseURL, database)
 
 	// Route
 	router := chi.NewRouter()

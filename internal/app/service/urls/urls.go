@@ -1,8 +1,8 @@
 package urls
 
 import (
-	"database/sql"
 	"fmt"
+	"github.com/ChristinaFomenko/shortener/internal/app/repository/urls/database"
 	"github.com/ChristinaFomenko/shortener/internal/models"
 	_ "github.com/jackc/pgx/v4"
 	log "github.com/sirupsen/logrus"
@@ -25,15 +25,10 @@ type service struct {
 	repository urlRepository
 	generator  generator
 	host       string
-	db         *sql.DB
+	db         *database.Database
 }
 
-func NewService(
-	repository urlRepository,
-	generator generator,
-	host string,
-	db *sql.DB,
-) *service {
+func NewService(repository urlRepository, generator generator, host string, db *database.Database) *service {
 	return &service{
 		repository: repository,
 		generator:  generator,
