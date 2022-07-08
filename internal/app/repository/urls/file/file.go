@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ChristinaFomenko/shortener/internal/models"
 	"os"
 	"sync"
 )
@@ -92,4 +93,23 @@ func (r *fileRepository) Get(id string) (string, error) {
 	}
 
 	return url, nil
+}
+
+func (r *fileRepository) GetList() ([]models.UserURL, error) {
+	r.ma.RLock()
+	defer r.ma.RUnlock()
+
+	urls := make([]models.UserURL, 0, len(r.store))
+	for shortURL, originalURL := range r.store {
+		urls = append(urls, models.UserURL{
+			ShortURL:    shortURL,
+			OriginalURL: originalURL,
+		})
+	}
+
+	return urls, nil
+}
+
+func (r *fileRepository) Ping() error {
+	return nil
 }

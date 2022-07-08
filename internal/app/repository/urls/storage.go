@@ -3,11 +3,14 @@ package urls
 import (
 	"github.com/ChristinaFomenko/shortener/internal/app/repository/urls/file"
 	"github.com/ChristinaFomenko/shortener/internal/app/repository/urls/memory"
+	"github.com/ChristinaFomenko/shortener/internal/models"
 )
 
 type Repo interface {
 	Add(id, url string) error
 	Get(id string) (string, error)
+	GetList() ([]models.UserURL, error)
+	Ping() error
 }
 
 func NewStorage(filePath string) (Repo, error) {

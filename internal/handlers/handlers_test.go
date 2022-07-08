@@ -2,14 +2,14 @@ package handlers
 
 import (
 	"bytes"
+	"github.com/ChristinaFomenko/shortener/internal/models"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	mock "github.com/ChristinaFomenko/shortener/internal/handlers/mocks"
 )
@@ -204,6 +204,72 @@ func TestAPIJSONShorten_BadRequest(t *testing.T) {
 			require.NoError(t, err)
 
 			assert.Equal(t, tt.want.response, string(bodyResult))
+		})
+	}
+}
+
+func Test_handler_GetList_Success(t *testing.T) {
+	type want struct {
+		contentType string
+		statusCode  int
+		response    string
+	}
+	tests := []struct {
+		name    string
+		request string
+		urls    []models.UserURL
+		err     error
+		want    want
+	}{
+		{
+			name: "success",
+			urls: []models.UserURL{
+				{
+					ShortURL:    "http://localhost:8080/abcde",
+					OriginalURL: "https://yandex.ru",
+				},
+				{
+					ShortURL:    "http://localhost:8080/qwerty",
+					OriginalURL: "https://github.com",
+				},
+			},
+			err: nil,
+			want: want{
+				contentType: "application/json",
+				statusCode:  200,
+				response:    "[{\"short_url\":\"http://localhost:8080/abcde\",\"original_url\":\"https://yandex.ru\"},{\"short_url\":\"http://localhost:8080/qwerty\",\"original_url\":\"https://github.com\"}]",
+			},
+			request: "/api/user/urls",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			serviceMock := mock.NewMockservice(ctrl)
+			serviceMock.EXPECT().GetList().Return(tt.urls, tt.err)
+
+			httpHandler := New(serviceMock)
+
+			request := httptest.NewRequest(http.MethodGet, tt.request, nil)
+
+			w := httptest.NewRecorder()
+			h := http.HandlerFunc(httpHandler.GetList)
+			h.ServeHTTP(w, request)
+			result := w.Result()
+
+			assert.Equal(t, tt.want.statusCode, result.StatusCode)
+			assert.Equal(t, tt.want.contentType, result.Header.Get("Content-Type"))
+
+			userResult, err := ioutil.ReadAll(result.Body)
+			require.NoError(t, err)
+			err = result.Body.Close()
+			require.NoError(t, err)
+
+			require.NoError(t, err)
+
+			assert.Equal(t, tt.want.response, string(userResult))
 		})
 	}
 }

@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"encoding/json"
+	"github.com/ChristinaFomenko/shortener/internal/models"
 	"github.com/asaskevich/govalidator"
 	"github.com/go-chi/chi/v5"
+	_ "github.com/jackc/pgx/v4/stdlib"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
@@ -14,6 +16,8 @@ import (
 type service interface {
 	Shorten(url string) (string, error)
 	Expand(id string) (string, error)
+	GetList() ([]models.UserURL, error)
+	Ping() error
 }
 
 type handler struct {
@@ -47,7 +51,7 @@ func (h *handler) Shorten(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	_, err = w.Write([]byte(shortcut))
 	if err != nil {
-		log.WithError(err).WithField("shortcut", shortcut).Error("write response error")
+		log.WithError(err).WithField("id", shortcut).Error("write response error")
 		return
 	}
 }
@@ -76,7 +80,7 @@ func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req := ShortenRequest{}
+	req := models.ShortenRequest{}
 	if err = json.Unmarshal(b, &req); err != nil {
 		http.Error(w, "request in not valid", http.StatusBadRequest)
 		return
@@ -98,7 +102,7 @@ func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 
-	resp := ShortenReply{ShortenURLResult: shortcut}
+	resp := models.ShortenReply{ShortenURLResult: shortcut}
 	marshal, err := json.Marshal(&resp)
 	if err != nil {
 		log.WithError(err).WithField("resp", resp).Error("marshal response error")
@@ -111,4 +115,45 @@ func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
 		log.WithError(err).WithField("shortcut", shortcut).Error("write response error")
 		return
 	}
+}
+
+func (h *handler) GetList(w http.ResponseWriter, r *http.Request) {
+	urls, err := h.service.GetList()
+	if err != nil {
+		log.WithError(err).Error("get urls error")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if len(urls) == 0 {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	w.Header().Set("content-type", "application/json")
+
+	resp := toGetUrlsReply(urls)
+	body, err := json.Marshal(&resp)
+	if err != nil {
+		log.WithError(err).WithField("resp", urls).Error("marshal urls response error")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	_, err = w.Write(body)
+	if err != nil {
+		log.WithError(err).WithField("resp", urls).Error("write response error")
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *handler) Ping(w http.ResponseWriter, r *http.Request) {
+	err := h.service.Ping()
+	if err != nil {
+		log.Infof("DB not avalable %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

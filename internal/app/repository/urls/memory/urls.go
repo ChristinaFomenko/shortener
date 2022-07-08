@@ -2,6 +2,7 @@ package memory
 
 import (
 	"errors"
+	"github.com/ChristinaFomenko/shortener/internal/models"
 	"sync"
 )
 
@@ -36,4 +37,23 @@ func (r *repository) Get(id string) (string, error) {
 	}
 
 	return url, nil
+}
+
+func (r *repository) GetList() ([]models.UserURL, error) {
+	r.ma.Lock()
+	defer r.ma.Unlock()
+
+	urls := make([]models.UserURL, 0, len(r.store))
+	for shortURL, originalURL := range r.store {
+		urls = append(urls, models.UserURL{
+			ShortURL:    shortURL,
+			OriginalURL: originalURL,
+		})
+	}
+
+	return urls, nil
+}
+
+func (r *repository) Ping() error {
+	return nil
 }

@@ -1,6 +1,8 @@
 package file
 
 import (
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"os"
 	"testing"
 )
@@ -68,4 +70,27 @@ func TestFileRepo_Get(t *testing.T) {
 	if err != nil {
 		return
 	}
+}
+
+func TestFileRepo_GetList(t *testing.T) {
+	repo, err := NewRepo(filePath)
+	require.NoError(t, err)
+
+	defer func() {
+		_ = os.Remove(filePath)
+	}()
+
+	err = repo.Add("abcde", "yandex.ru")
+	require.NoError(t, err)
+
+	err = repo.Add("qwerty", "github.com")
+	require.NoError(t, err)
+
+	repo, err = NewRepo("storage.dat")
+	require.NoError(t, err)
+
+	act, err := repo.GetList()
+	require.NoError(t, err)
+
+	assert.Len(t, act, 2)
 }

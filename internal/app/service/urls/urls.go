@@ -1,7 +1,10 @@
 package urls
 
 import (
+	"database/sql"
 	"fmt"
+	"github.com/ChristinaFomenko/shortener/internal/models"
+	_ "github.com/jackc/pgx/v4"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -10,6 +13,8 @@ import (
 type urlRepository interface {
 	Add(id, url string) error
 	Get(id string) (string, error)
+	GetList() ([]models.UserURL, error)
+	Ping() error
 }
 
 type generator interface {
@@ -20,16 +25,20 @@ type service struct {
 	repository urlRepository
 	generator  generator
 	host       string
+	db         *sql.DB
 }
 
 func NewService(
 	repository urlRepository,
 	generator generator,
-	host string) *service {
+	host string,
+	db *sql.DB,
+) *service {
 	return &service{
 		repository: repository,
 		generator:  generator,
 		host:       host,
+		db:         db,
 	}
 }
 
@@ -54,4 +63,18 @@ func (s *service) Expand(id string) (string, error) {
 	}
 
 	return url, nil
+}
+
+func (s *service) GetList() ([]models.UserURL, error) {
+	urls, err := s.repository.GetList()
+	if err != nil {
+		log.WithError(err).Error("get url list error")
+		return nil, err
+	}
+
+	return urls, nil
+}
+
+func (s *service) Ping() error {
+	return s.db.Ping()
 }

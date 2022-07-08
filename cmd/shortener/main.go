@@ -1,15 +1,18 @@
 package main
 
 import (
+	"database/sql"
 	"github.com/ChristinaFomenko/shortener/configs"
 	"github.com/ChristinaFomenko/shortener/internal/app/generator"
 	repositoryURL "github.com/ChristinaFomenko/shortener/internal/app/repository/urls"
+	"github.com/ChristinaFomenko/shortener/internal/app/repository/urls/database"
 	serviceURL "github.com/ChristinaFomenko/shortener/internal/app/service/urls"
 	"github.com/ChristinaFomenko/shortener/internal/handlers"
 	"github.com/ChristinaFomenko/shortener/internal/middlewares"
 	"github.com/caarlos0/env"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	_ "github.com/jackc/pgx/v4/stdlib"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 )
@@ -22,6 +25,18 @@ func main() {
 		log.Fatalf("failed to retrieve env variables, %v", err)
 	}
 
+	// Database
+	db, err := sql.Open("pgx", cfg.DatabaseDSN)
+	if err != nil {
+		log.Fatalf("failed to connnect db %v", err)
+	}
+	defer db.Close()
+
+	_, err = db.Exec(database.CreateTable)
+	if err != nil {
+		log.Infof("failed to create create table %v", err)
+	}
+
 	// Repositories
 	repository, err := repositoryURL.NewStorage(cfg.FileStoragePath)
 	if err != nil {
@@ -29,7 +44,7 @@ func main() {
 	}
 	// Services
 	helper := generator.NewGenerator()
-	service := serviceURL.NewService(repository, helper, cfg.BaseURL)
+	service := serviceURL.NewService(repository, helper, cfg.BaseURL, db)
 
 	// Route
 	router := chi.NewRouter()
@@ -38,11 +53,14 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 	router.Use(middlewares.GZIPMiddleware)
+	//router.Use(middlewares.AuthCookie)
 
 	//router.Route("/", func(r chi.Router) {
 	router.Post("/", handlers.New(service).Shorten)
 	router.Get("/{id}", handlers.New(service).Expand)
 	router.Post("/api/shorten", handlers.New(service).APIJSONShorten)
+	router.Get("/api/user/urls", handlers.New(service).GetList)
+	router.Get("/ping", handlers.New(service).Ping)
 	//})
 
 	address := cfg.ServerAddress

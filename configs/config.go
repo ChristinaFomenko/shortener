@@ -10,12 +10,14 @@ type appConfig struct {
 	ServerAddress   string `env:"SERVER_ADDRESS"`
 	BaseURL         string `env:"BASE_URL"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
+	DatabaseDSN     string `env:"DATABASE_DSN" envDefault:""`
 }
 
 func NewConfig() (*appConfig, error) {
 	serverAddress := getServerAddress()
 	baseURL := getBaseURL()
 	fileStoragePath := getFileStoragePath()
+	databaseDSN := getDatabaseDSN()
 	flag.Parse()
 
 	if serverAddress == nil {
@@ -30,10 +32,15 @@ func NewConfig() (*appConfig, error) {
 		return nil, errors.New("file storage path not specified")
 	}
 
+	if databaseDSN == nil {
+		return nil, errors.New("database dsn not specified")
+	}
+
 	return &appConfig{
 		ServerAddress:   *serverAddress,
 		BaseURL:         *baseURL,
 		FileStoragePath: *fileStoragePath,
+		DatabaseDSN:     *databaseDSN,
 	}, nil
 }
 
@@ -59,4 +66,10 @@ func getFileStoragePath() *string {
 	path := os.Getenv("FILE_STORAGE_PATH")
 
 	return flag.String("f", path, "file storage path")
+}
+
+func getDatabaseDSN() *string {
+	databaseDSN := os.Getenv("DATABASE_DSN")
+
+	return flag.String("d", databaseDSN, "database")
 }
