@@ -4,8 +4,10 @@ import (
 	"database/sql"
 	"github.com/ChristinaFomenko/shortener/configs"
 	"github.com/ChristinaFomenko/shortener/internal/app/generator"
+	"github.com/ChristinaFomenko/shortener/internal/app/hasher"
 	repositoryURL "github.com/ChristinaFomenko/shortener/internal/app/repository/urls"
 	"github.com/ChristinaFomenko/shortener/internal/app/repository/urls/database"
+	authService "github.com/ChristinaFomenko/shortener/internal/app/service/auth"
 	serviceURL "github.com/ChristinaFomenko/shortener/internal/app/service/urls"
 	"github.com/ChristinaFomenko/shortener/internal/handlers"
 	"github.com/ChristinaFomenko/shortener/internal/middlewares"
@@ -36,7 +38,7 @@ func main() {
 	if err != nil {
 		log.Infof("failed to create create table %v", err)
 	}
-	database := database.NewDatabase(db)
+	databaseService := database.NewDatabase(db)
 
 	// Repositories
 	repository, err := repositoryURL.NewStorage(cfg.FileStoragePath)
@@ -45,7 +47,11 @@ func main() {
 	}
 	// Services
 	helper := generator.NewGenerator()
-	service := serviceURL.NewService(repository, helper, cfg.BaseURL, database)
+	hash := hasher.NewHasher([]byte("my-secret-key"))
+	service := serviceURL.NewService(repository, helper, cfg.BaseURL, databaseService)
+	authSrvc := authService.NewService(helper, hash)
+
+	auth := middlewares.NewAuthenticator(authSrvc)
 
 	// Route
 	router := chi.NewRouter()
@@ -54,14 +60,14 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 	router.Use(middlewares.GZIPMiddleware)
-	//router.Use(middlewares.AuthCookie)
+	router.Use(auth.Auth)
 
 	//router.Route("/", func(r chi.Router) {
-	router.Post("/", handlers.New(service).Shorten)
-	router.Get("/{id}", handlers.New(service).Expand)
-	router.Post("/api/shorten", handlers.New(service).APIJSONShorten)
-	router.Get("/api/user/urls", handlers.New(service).GetList)
-	router.Get("/ping", handlers.New(service).Ping)
+	router.Post("/", handlers.New(service, auth).Shorten)
+	router.Get("/{id}", handlers.New(service, auth).Expand)
+	router.Post("/api/shorten", handlers.New(service, auth).APIJSONShorten)
+	router.Get("/api/user/urls", handlers.New(service, auth).GetList)
+	router.Get("/ping", handlers.New(service, auth).Ping)
 	//})
 
 	address := cfg.ServerAddress

@@ -5,6 +5,7 @@
 package mock_handlers
 
 import (
+	context "context"
 	reflect "reflect"
 
 	models "github.com/ChristinaFomenko/shortener/internal/models"
@@ -35,33 +36,33 @@ func (m *Mockservice) EXPECT() *MockserviceMockRecorder {
 }
 
 // Expand mocks base method.
-func (m *Mockservice) Expand(id string) (string, error) {
+func (m *Mockservice) Expand(id, userID string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Expand", id)
+	ret := m.ctrl.Call(m, "Expand", id, userID)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Expand indicates an expected call of Expand.
-func (mr *MockserviceMockRecorder) Expand(id interface{}) *gomock.Call {
+func (mr *MockserviceMockRecorder) Expand(id, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Expand", reflect.TypeOf((*Mockservice)(nil).Expand), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Expand", reflect.TypeOf((*Mockservice)(nil).Expand), id, userID)
 }
 
 // GetList mocks base method.
-func (m *Mockservice) GetList() ([]models.UserURL, error) {
+func (m *Mockservice) GetList(userID string) ([]models.UserURL, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetList")
+	ret := m.ctrl.Call(m, "GetList", userID)
 	ret0, _ := ret[0].([]models.UserURL)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetList indicates an expected call of GetList.
-func (mr *MockserviceMockRecorder) GetList() *gomock.Call {
+func (mr *MockserviceMockRecorder) GetList(userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetList", reflect.TypeOf((*Mockservice)(nil).GetList))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetList", reflect.TypeOf((*Mockservice)(nil).GetList), userID)
 }
 
 // Ping mocks base method.
@@ -79,16 +80,53 @@ func (mr *MockserviceMockRecorder) Ping() *gomock.Call {
 }
 
 // Shorten mocks base method.
-func (m *Mockservice) Shorten(url string) (string, error) {
+func (m *Mockservice) Shorten(url, userID string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Shorten", url)
+	ret := m.ctrl.Call(m, "Shorten", url, userID)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Shorten indicates an expected call of Shorten.
-func (mr *MockserviceMockRecorder) Shorten(url interface{}) *gomock.Call {
+func (mr *MockserviceMockRecorder) Shorten(url, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shorten", reflect.TypeOf((*Mockservice)(nil).Shorten), url)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shorten", reflect.TypeOf((*Mockservice)(nil).Shorten), url, userID)
+}
+
+// Mockauth is a mock of auth interface.
+type Mockauth struct {
+	ctrl     *gomock.Controller
+	recorder *MockauthMockRecorder
+}
+
+// MockauthMockRecorder is the mock recorder for Mockauth.
+type MockauthMockRecorder struct {
+	mock *Mockauth
+}
+
+// NewMockauth creates a new mock instance.
+func NewMockauth(ctrl *gomock.Controller) *Mockauth {
+	mock := &Mockauth{ctrl: ctrl}
+	mock.recorder = &MockauthMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *Mockauth) EXPECT() *MockauthMockRecorder {
+	return m.recorder
+}
+
+// UserID mocks base method.
+func (m *Mockauth) UserID(ctx context.Context) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UserID", ctx)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// UserID indicates an expected call of UserID.
+func (mr *MockauthMockRecorder) UserID(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserID", reflect.TypeOf((*Mockauth)(nil).UserID), ctx)
 }

@@ -7,9 +7,9 @@ import (
 )
 
 type Repo interface {
-	Add(id, url string) error
-	Get(id string) (string, error)
-	GetList() ([]models.UserURL, error)
+	Add(urlID, userID, url string) error
+	Get(urlID, userID string) (string, error)
+	GetList(userID string) ([]models.UserURL, error)
 	Ping() error
 }
 

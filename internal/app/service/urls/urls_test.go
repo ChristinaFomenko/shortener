@@ -10,25 +10,28 @@ import (
 	mocks "github.com/ChristinaFomenko/shortener/internal/app/service/urls/mocks"
 )
 
-const host = "http://localhost:8080"
+const (
+	host          = "http://localhost:8080"
+	defaultUserID = "abcde"
+)
 
 func Test_service_Shorten(t *testing.T) {
 	tests := []struct {
 		name     string
-		id       string
+		urlID    string
 		url      string
 		shortcut string
 		err      error
 	}{
 		{
 			name:     "success",
-			id:       "abcde",
+			urlID:    "abcde",
 			url:      "yandex.ru",
 			shortcut: "http://localhost:8080/abcde",
 		},
 		{
 			name:     "success",
-			id:       "abcde",
+			urlID:    "abcde",
 			url:      "yandex.ru",
 			shortcut: "",
 			err:      errors.New("test err"),
@@ -40,13 +43,13 @@ func Test_service_Shorten(t *testing.T) {
 
 	for _, tt := range tests {
 		generatorMock := mocks.NewMockgenerator(ctrl)
-		generatorMock.EXPECT().GenerateID().Return(tt.id)
+		generatorMock.EXPECT().Letters(idLength).Return(tt.urlID)
 
 		repositoryMock := mocks.NewMockurlRepository(ctrl)
-		repositoryMock.EXPECT().Add(tt.id, tt.url).Return(tt.err)
+		repositoryMock.EXPECT().Add(tt.urlID, defaultUserID, tt.url).Return(tt.err)
 
 		s := NewService(repositoryMock, generatorMock, host, nil)
-		act, err := s.Shorten(tt.url)
+		act, err := s.Shorten(tt.url, defaultUserID)
 
 		assert.Equal(t, tt.err, err)
 		assert.Equal(t, tt.shortcut, act)
@@ -79,10 +82,10 @@ func Test_service_Expand(t *testing.T) {
 
 	for _, tt := range tests {
 		repositoryMock := mocks.NewMockurlRepository(ctrl)
-		repositoryMock.EXPECT().Get(tt.shortcut).Return(tt.url, tt.err)
+		repositoryMock.EXPECT().Get(tt.shortcut, defaultUserID).Return(tt.url, tt.err)
 
 		s := NewService(repositoryMock, nil, host, nil)
-		act, err := s.Expand(tt.shortcut)
+		act, err := s.Expand(tt.shortcut, defaultUserID)
 
 		assert.Equal(t, tt.err, err)
 		assert.Equal(t, tt.url, act)
@@ -121,10 +124,10 @@ func Test_service_GetList(t *testing.T) {
 
 	for _, tt := range tests {
 		repositoryMock := mocks.NewMockurlRepository(ctrl)
-		repositoryMock.EXPECT().GetList().Return(tt.urls, tt.err)
+		repositoryMock.EXPECT().GetList(defaultUserID).Return(tt.urls, tt.err)
 
 		s := NewService(repositoryMock, nil, host, nil)
-		act, err := s.GetList()
+		act, err := s.GetList(defaultUserID)
 
 		assert.Equal(t, tt.err, err)
 		assert.Equal(t, tt.urls, act)

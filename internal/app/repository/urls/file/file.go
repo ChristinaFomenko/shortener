@@ -10,8 +10,10 @@ import (
 	"sync"
 )
 
+var ErrURLNotFound = errors.New("url not found")
+
 type fileRepository struct {
-	store    map[string]string
+	store    map[string]map[string]string
 	ma       sync.RWMutex
 	filePath string
 }
@@ -28,7 +30,7 @@ func NewRepo(filePath string) (*fileRepository, error) {
 	}, nil
 }
 
-func readLines(filePath string) (map[string]string, error) {
+func readLines(filePath string) (map[string]map[string]string, error) {
 	file, err := os.OpenFile(filePath, os.O_CREATE, 0777)
 	if err != nil {
 		return nil, err
@@ -39,7 +41,7 @@ func readLines(filePath string) (map[string]string, error) {
 	}(file)
 
 	scanner := bufio.NewScanner(file)
-	res := make(map[string]string)
+	res := make(map[string]map[string]string)
 
 	if ok := scanner.Scan(); !ok {
 		return res, nil
@@ -54,13 +56,19 @@ func readLines(filePath string) (map[string]string, error) {
 }
 
 // Add URL
-func (r *fileRepository) Add(id, url string) error {
+func (r *fileRepository) Add(urlID, userID, url string) error {
 	r.ma.Lock()
 	defer r.ma.Unlock()
 
-	r.store[id] = url
+	userStore, ok := r.store[userID]
+	if !ok {
+		userStore = map[string]string{}
+	}
 
-	file, err := os.OpenFile(r.filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+	userStore[urlID] = url
+	r.store[userID] = userStore
+
+	file, err := os.OpenFile(r.filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777)
 	if err != nil {
 		return fmt.Errorf("open file error: %w", err)
 	}
@@ -83,24 +91,35 @@ func (r *fileRepository) Add(id, url string) error {
 }
 
 // Get URL
-func (r *fileRepository) Get(id string) (string, error) {
+func (r *fileRepository) Get(urlID, userID string) (string, error) {
 	r.ma.RLock()
 	defer r.ma.RUnlock()
 
-	url, ok := r.store[id]
+	userStore, ok := r.store[userID]
 	if !ok {
-		return "", errors.New("url not found")
+		return "", ErrURLNotFound
+	}
+
+	url, ok := userStore[urlID]
+	if !ok {
+		return "", ErrURLNotFound
 	}
 
 	return url, nil
 }
 
-func (r *fileRepository) GetList() ([]models.UserURL, error) {
+func (r *fileRepository) GetList(userID string) ([]models.UserURL, error) {
 	r.ma.RLock()
 	defer r.ma.RUnlock()
 
-	urls := make([]models.UserURL, 0, len(r.store))
-	for shortURL, originalURL := range r.store {
+	urls := make([]models.UserURL, 0)
+
+	userStore, ok := r.store[userID]
+	if !ok {
+		return urls, nil
+	}
+
+	for shortURL, originalURL := range userStore {
 		urls = append(urls, models.UserURL{
 			ShortURL:    shortURL,
 			OriginalURL: originalURL,

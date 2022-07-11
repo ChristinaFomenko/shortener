@@ -35,47 +35,47 @@ func (m *MockurlRepository) EXPECT() *MockurlRepositoryMockRecorder {
 }
 
 // Add mocks base method.
-func (m *MockurlRepository) Add(id, url string) error {
+func (m *MockurlRepository) Add(urlID, userID, url string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Add", id, url)
+	ret := m.ctrl.Call(m, "Add", urlID, userID, url)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Add indicates an expected call of Add.
-func (mr *MockurlRepositoryMockRecorder) Add(id, url interface{}) *gomock.Call {
+func (mr *MockurlRepositoryMockRecorder) Add(urlID, userID, url interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockurlRepository)(nil).Add), id, url)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockurlRepository)(nil).Add), urlID, userID, url)
 }
 
 // Get mocks base method.
-func (m *MockurlRepository) Get(id string) (string, error) {
+func (m *MockurlRepository) Get(urlID, userID string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", id)
+	ret := m.ctrl.Call(m, "Get", urlID, userID)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockurlRepositoryMockRecorder) Get(id interface{}) *gomock.Call {
+func (mr *MockurlRepositoryMockRecorder) Get(urlID, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockurlRepository)(nil).Get), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockurlRepository)(nil).Get), urlID, userID)
 }
 
 // GetList mocks base method.
-func (m *MockurlRepository) GetList() ([]models.UserURL, error) {
+func (m *MockurlRepository) GetList(userID string) ([]models.UserURL, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetList")
+	ret := m.ctrl.Call(m, "GetList", userID)
 	ret0, _ := ret[0].([]models.UserURL)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetList indicates an expected call of GetList.
-func (mr *MockurlRepositoryMockRecorder) GetList() *gomock.Call {
+func (mr *MockurlRepositoryMockRecorder) GetList(userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetList", reflect.TypeOf((*MockurlRepository)(nil).GetList))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetList", reflect.TypeOf((*MockurlRepository)(nil).GetList), userID)
 }
 
 // Ping mocks base method.
@@ -115,16 +115,16 @@ func (m *Mockgenerator) EXPECT() *MockgeneratorMockRecorder {
 	return m.recorder
 }
 
-// GenerateID mocks base method.
-func (m *Mockgenerator) GenerateID() string {
+// Letters mocks base method.
+func (m *Mockgenerator) Letters(n int64) string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GenerateID")
+	ret := m.ctrl.Call(m, "Letters", n)
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
-// GenerateID indicates an expected call of GenerateID.
-func (mr *MockgeneratorMockRecorder) GenerateID() *gomock.Call {
+// Letters indicates an expected call of Letters.
+func (mr *MockgeneratorMockRecorder) Letters(n interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateID", reflect.TypeOf((*Mockgenerator)(nil).GenerateID))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Letters", reflect.TypeOf((*Mockgenerator)(nil).Letters), n)
 }

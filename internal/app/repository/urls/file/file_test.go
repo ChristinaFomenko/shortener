@@ -7,72 +7,41 @@ import (
 	"testing"
 )
 
-const filePath = "storage.dat"
+const (
+	filePath      = "storage.dat"
+	defaultUserID = "abcde"
+)
 
 func TestFileRepo_Add(t *testing.T) {
-	repo, err := NewRepo("storage.dat")
-	if err != nil {
-		return
-	}
+	repo, err := NewRepo("store.dat")
+	require.NoError(t, err)
 
-	err = repo.Add("hello", "world")
-	if err != nil {
-		return
-	}
+	defer func() {
+		_ = os.Remove(filePath)
+	}()
 
-	err = os.Remove(filePath)
-	if err != nil {
-		return
-	}
+	err = repo.Add("qwe", defaultUserID, "yandex.ru")
+	require.NoError(t, err)
 }
 
 func TestFileRepo_Get(t *testing.T) {
-	repo, err := NewRepo(filePath)
-	if err != nil {
-		return
-	}
+	repo, err := NewRepo("storage.dat")
+	require.NoError(t, err)
 
-	err = repo.Add("hi", "Go")
-	if err != nil {
-		return
-	}
+	defer func() {
+		_ = os.Remove(filePath)
+	}()
 
-	err = repo.Add("hi", "Chris")
-	if err != nil {
-		return
-	}
+	err = repo.Add("abc", defaultUserID, "yandex.ru")
+	require.NoError(t, err)
 
-	err = repo.Add("good", "morning")
-	if err != nil {
-		return
-	}
+	act, err := repo.Get("abc", defaultUserID)
+	require.NoError(t, err)
 
-	err = repo.Add("good", "morning")
-	if err != nil {
-		return
-	}
-
-	repo, err = NewRepo("storage.dat")
-	if err != nil {
-		return
-	}
-
-	act, err := repo.Get("good")
-	if err != nil {
-		return
-	}
-
-	if act != "morning" {
-		t.Error(act)
-	}
-
-	err = os.Remove(filePath)
-	if err != nil {
-		return
-	}
+	assert.Equal(t, "yandex.ru", act)
 }
 
-func TestFileRepo_GetList(t *testing.T) {
+func TestFileRepo_GetList_Success(t *testing.T) {
 	repo, err := NewRepo(filePath)
 	require.NoError(t, err)
 
@@ -80,17 +49,40 @@ func TestFileRepo_GetList(t *testing.T) {
 		_ = os.Remove(filePath)
 	}()
 
-	err = repo.Add("abcde", "yandex.ru")
+	err = repo.Add("abcde", defaultUserID, "yandex.ru")
 	require.NoError(t, err)
 
-	err = repo.Add("qwerty", "github.com")
+	err = repo.Add("edcba", defaultUserID, "yandex.ru")
 	require.NoError(t, err)
 
 	repo, err = NewRepo("storage.dat")
 	require.NoError(t, err)
 
-	act, err := repo.GetList()
+	act, err := repo.GetList(defaultUserID)
 	require.NoError(t, err)
 
 	assert.Len(t, act, 2)
+}
+
+func TestFileRepo_GetList_NotFound(t *testing.T) {
+	repo, err := NewRepo(filePath)
+	require.NoError(t, err)
+
+	defer func() {
+		_ = os.Remove(filePath)
+	}()
+
+	err = repo.Add("qwerty", defaultUserID, "avito.ru")
+	require.NoError(t, err)
+
+	err = repo.Add("ytrewq", defaultUserID, "yandex.ru")
+	require.NoError(t, err)
+
+	repo, err = NewRepo("storage.dat")
+	require.NoError(t, err)
+
+	act, err := repo.GetList("fake")
+	require.NoError(t, err)
+
+	assert.Len(t, act, 0)
 }

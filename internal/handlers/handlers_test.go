@@ -14,6 +14,8 @@ import (
 	mock "github.com/ChristinaFomenko/shortener/internal/handlers/mocks"
 )
 
+const defaultUserID = "abcde"
+
 func TestShortenHandler(t *testing.T) {
 	type want struct {
 		contentType string
@@ -47,9 +49,12 @@ func TestShortenHandler(t *testing.T) {
 			defer ctrl.Finish()
 
 			serviceMock := mock.NewMockservice(ctrl)
-			serviceMock.EXPECT().Shorten(tt.url).Return(tt.shortcut, nil)
+			serviceMock.EXPECT().Shorten(tt.url, defaultUserID).Return(tt.shortcut, nil)
 
-			httpHandler := New(serviceMock)
+			authMock := mock.NewMockauth(ctrl)
+			authMock.EXPECT().UserID(gomock.Any()).Return(defaultUserID)
+
+			httpHandler := New(serviceMock, authMock)
 
 			buffer := new(bytes.Buffer)
 			buffer.WriteString(tt.url)
@@ -110,9 +115,12 @@ func TestAPIJSONShorten_Success(t *testing.T) {
 			defer ctrl.Finish()
 
 			serviceMock := mock.NewMockservice(ctrl)
-			serviceMock.EXPECT().Shorten(tt.url).Return(tt.shortcut, tt.err)
+			serviceMock.EXPECT().Shorten(tt.url, defaultUserID).Return(tt.shortcut, tt.err)
 
-			httpHandler := New(serviceMock)
+			authMock := mock.NewMockauth(ctrl)
+			authMock.EXPECT().UserID(gomock.Any()).Return(defaultUserID)
+
+			httpHandler := New(serviceMock, authMock)
 
 			buffer := new(bytes.Buffer)
 			buffer.WriteString(tt.body)
@@ -182,7 +190,7 @@ func TestAPIJSONShorten_BadRequest(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			httpHandler := New(nil)
+			httpHandler := New(nil, nil)
 
 			buffer := new(bytes.Buffer)
 			buffer.WriteString(tt.body)
@@ -248,9 +256,12 @@ func Test_handler_GetList_Success(t *testing.T) {
 			defer ctrl.Finish()
 
 			serviceMock := mock.NewMockservice(ctrl)
-			serviceMock.EXPECT().GetList().Return(tt.urls, tt.err)
+			serviceMock.EXPECT().GetList(defaultUserID).Return(tt.urls, tt.err)
 
-			httpHandler := New(serviceMock)
+			authMock := mock.NewMockauth(ctrl)
+			authMock.EXPECT().UserID(gomock.Any()).Return(defaultUserID)
+
+			httpHandler := New(serviceMock, authMock)
 
 			request := httptest.NewRequest(http.MethodGet, tt.request, nil)
 

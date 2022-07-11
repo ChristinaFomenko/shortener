@@ -10,15 +10,17 @@ import (
 
 //go:generate mockgen -source=urls.go -destination=mocks/mocks.go
 
+const idLength int64 = 5
+
 type urlRepository interface {
-	Add(id, url string) error
-	Get(id string) (string, error)
-	GetList() ([]models.UserURL, error)
+	Add(urlID, userID, url string) error
+	Get(urlID, userID string) (string, error)
+	GetList(userID string) ([]models.UserURL, error)
 	Ping() error
 }
 
 type generator interface {
-	GenerateID() string
+	Letters(n int64) string
 }
 
 type service struct {
@@ -37,34 +39,41 @@ func NewService(repository urlRepository, generator generator, host string, db *
 	}
 }
 
-func (s *service) Shorten(url string) (string, error) {
-	id := s.generator.GenerateID()
-	err := s.repository.Add(id, url)
+func (s *service) Shorten(url, userID string) (string, error) {
+	urlID := s.generator.Letters(idLength)
+	err := s.repository.Add(urlID, userID, url)
 	if err != nil {
-		log.WithError(err).WithField("id", id).WithField("url", url).Error("add url error")
+		log.WithError(err).
+			WithField("urlID", urlID).
+			WithField("userID", userID).
+			WithField("url", url).Error("add url error")
 		return "", err
 	}
 
-	return fmt.Sprintf("%s/%s", s.host, id), nil
+	return s.buildShortString(urlID), nil
 }
 
 // Return by id
 
-func (s *service) Expand(id string) (string, error) {
-	url, err := s.repository.Get(id)
+func (s *service) Expand(urlID, userID string) (string, error) {
+	url, err := s.repository.Get(urlID, userID)
 	if err != nil {
-		log.WithError(err).WithField("id", id).Error("get url error")
+		log.WithError(err).WithField("urlID", urlID).Error("get url error")
 		return "", err
 	}
 
 	return url, nil
 }
 
-func (s *service) GetList() ([]models.UserURL, error) {
-	urls, err := s.repository.GetList()
+func (s *service) GetList(userID string) ([]models.UserURL, error) {
+	urls, err := s.repository.GetList(userID)
 	if err != nil {
-		log.WithError(err).Error("get url list error")
+		log.WithError(err).WithField("urlID", userID).Error("get url list error")
 		return nil, err
+	}
+
+	for idx := range urls {
+		urls[idx].ShortURL = s.buildShortString(urls[idx].ShortURL)
 	}
 
 	return urls, nil
@@ -72,4 +81,8 @@ func (s *service) GetList() ([]models.UserURL, error) {
 
 func (s *service) Ping() error {
 	return s.db.Ping()
+}
+
+func (s *service) buildShortString(id string) string {
+	return fmt.Sprintf("%s/%s", s.host, id)
 }

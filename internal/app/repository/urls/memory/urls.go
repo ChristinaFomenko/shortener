@@ -6,45 +6,65 @@ import (
 	"sync"
 )
 
+var ErrURLNotFound = errors.New("url not found")
+
 type repository struct {
-	store map[string]string
+	store map[string]map[string]string
 	ma    sync.RWMutex
 }
 
 func NewRepo() *repository {
 	return &repository{
-		store: map[string]string{},
+		store: map[string]map[string]string{},
 	}
 }
 
 // Add URL
-func (r *repository) Add(id, url string) error {
+func (r *repository) Add(urlID, userID, url string) error {
 	r.ma.Lock()
 	defer r.ma.Unlock()
 
-	r.store[id] = url
+	userStore, ok := r.store[userID]
+	if !ok {
+		userStore = map[string]string{}
+	}
+
+	userStore[urlID] = url
+	r.store[userID] = userStore
+
 	return nil
 }
 
 // Get URL
-func (r *repository) Get(id string) (string, error) {
+func (r *repository) Get(urlID, userID string) (string, error) {
 	r.ma.RLock()
 	defer r.ma.RUnlock()
 
-	url, ok := r.store[id]
+	userStore, ok := r.store[userID]
 	if !ok {
-		return "", errors.New("url not found")
+		return "", ErrURLNotFound
+	}
+
+	url, ok := userStore[urlID]
+	if !ok {
+		return "", ErrURLNotFound
 	}
 
 	return url, nil
 }
 
-func (r *repository) GetList() ([]models.UserURL, error) {
+func (r *repository) GetList(userID string) ([]models.UserURL, error) {
 	r.ma.Lock()
 	defer r.ma.Unlock()
 
-	urls := make([]models.UserURL, 0, len(r.store))
-	for shortURL, originalURL := range r.store {
+	urls := make([]models.UserURL, 0)
+
+	userStore, ok := r.store[userID]
+	if !ok {
+		return urls, nil
+	}
+
+	for shortURL, originalURL := range userStore {
 		urls = append(urls, models.UserURL{
 			ShortURL:    shortURL,
 			OriginalURL: originalURL,

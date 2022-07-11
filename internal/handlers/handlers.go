@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/ChristinaFomenko/shortener/internal/models"
 	"github.com/asaskevich/govalidator"
@@ -14,19 +15,25 @@ import (
 //go:generate mockgen -source=handlers.go -destination=mocks/mocks.go
 
 type service interface {
-	Shorten(url string) (string, error)
-	Expand(id string) (string, error)
-	GetList() ([]models.UserURL, error)
+	Shorten(url string, userID string) (string, error)
+	Expand(id string, userID string) (string, error)
+	GetList(userID string) ([]models.UserURL, error)
 	Ping() error
+}
+
+type auth interface {
+	UserID(ctx context.Context) string
 }
 
 type handler struct {
 	service service
+	auth    auth
 }
 
-func New(service service) *handler {
+func New(service service, userAuth auth) *handler {
 	return &handler{
 		service: service,
+		auth:    userAuth,
 	}
 }
 
@@ -39,8 +46,10 @@ func (h *handler) Shorten(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userID := h.auth.UserID(r.Context())
+
 	url := string(bytes)
-	shortcut, err := h.service.Shorten(url)
+	shortcut, err := h.service.Shorten(url, userID)
 	if err != nil {
 		log.WithError(err).WithField("url", url).Error("shorten url error")
 		http.Error(w, "url shortcut", http.StatusInternalServerError)
@@ -51,7 +60,7 @@ func (h *handler) Shorten(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	_, err = w.Write([]byte(shortcut))
 	if err != nil {
-		log.WithError(err).WithField("id", shortcut).Error("write response error")
+		log.WithError(err).WithField("shortcut", shortcut).Error("write response error")
 		return
 	}
 }
@@ -64,15 +73,17 @@ func (h *handler) Expand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	url, err := h.service.Expand(id)
+	userID := h.auth.UserID(r.Context())
+
+	url, err := h.service.Expand(id, userID)
 	if err != nil {
 		http.Error(w, "url not found", http.StatusNoContent)
 		return
 	}
 
-	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+	w.Header().Set("Location", url)
+	w.WriteHeader(http.StatusTemporaryRedirect)
 }
-
 func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
 	b, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -92,7 +103,9 @@ func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shortcut, err := h.service.Shorten(req.URL)
+	userID := h.auth.UserID(r.Context())
+
+	shortcut, err := h.service.Shorten(req.URL, userID)
 	if err != nil {
 		log.WithError(err).WithField("url", req.URL).Error("shorten url error")
 		http.Error(w, err.Error(), 400)
@@ -118,7 +131,8 @@ func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) GetList(w http.ResponseWriter, r *http.Request) {
-	urls, err := h.service.GetList()
+	userID := h.auth.UserID(r.Context())
+	urls, err := h.service.GetList(userID)
 	if err != nil {
 		log.WithError(err).Error("get urls error")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
