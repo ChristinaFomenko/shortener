@@ -1,11 +1,16 @@
 package generator
 
 import (
-	"math/rand"
+	crypto "crypto/rand"
+	math "math/rand"
 	"time"
 )
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+func init() {
+	math.Seed(time.Now().Unix())
+}
 
 type generator struct{}
 
@@ -16,7 +21,7 @@ func NewGenerator() *generator {
 func (g *generator) Letters(n int64) string {
 	b := make([]byte, n)
 	for i := range b {
-		b[i] = letterBytes[rand.Int63()%int64(len(letterBytes))]
+		b[i] = letterBytes[math.Int63()%int64(len(letterBytes))]
 	}
 
 	return string(b)
@@ -24,8 +29,7 @@ func (g *generator) Letters(n int64) string {
 
 func (g *generator) Random(n int64) string {
 	b := make([]byte, n)
-	rand.Seed(time.Now().Unix())
-	_, _ = rand.Read(b)
+	_, _ = crypto.Read(b)
 
 	return string(b)
 }

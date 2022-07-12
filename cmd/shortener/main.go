@@ -47,7 +47,7 @@ func main() {
 	}
 	// Services
 	helper := generator.NewGenerator()
-	hash := hasher.NewHasher([]byte("my-secret-key"))
+	hash := hasher.NewHasher(cfg.SecretKey)
 	service := serviceURL.NewService(repository, helper, cfg.BaseURL, databaseService)
 	authSrvc := authService.NewService(helper, hash)
 

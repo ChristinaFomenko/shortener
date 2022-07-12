@@ -32,7 +32,6 @@ func NewAuthenticator(authService authService) *authenticator {
 func (a *authenticator) Auth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var userID string
-		// Проверка авторизован ли пользователь
 		token, err := a.getAuthToken(r)
 		if err != nil {
 			userID, token, err = a.authService.SignUp()
@@ -43,8 +42,8 @@ func (a *authenticator) Auth(next http.Handler) http.Handler {
 		} else {
 			userID, err = a.authService.SignIn(token)
 			if err != nil {
-				// Если пользователь подменил токен, или он не валиден, то генерим новый токен и userID
 				userID, token, err = a.authService.SignUp()
+
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
@@ -52,7 +51,6 @@ func (a *authenticator) Auth(next http.Handler) http.Handler {
 			}
 		}
 
-		// Сохранение
 		a.setUserToken(w, token)
 		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), AuthTokenKey, userID)))
 	})
