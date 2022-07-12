@@ -127,7 +127,7 @@ func Test_service_FetchURls(t *testing.T) {
 		repositoryMock.EXPECT().FetchURls(defaultUserID).Return(tt.urls, tt.err)
 
 		s := NewService(repositoryMock, nil, host, nil)
-		act, err := s.GetList(defaultUserID)
+		act, err := s.FetchURls(defaultUserID)
 
 		assert.Equal(t, tt.err, err)
 		assert.Equal(t, tt.urls, act)
