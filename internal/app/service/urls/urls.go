@@ -14,7 +14,7 @@ const idLength int64 = 5
 
 type urlRepository interface {
 	Add(urlID, userID, url string) error
-	Get(urlID, userID string) (string, error)
+	Get(urlID string) (string, error)
 	GetList(userID string) ([]models.UserURL, error)
 	Ping() error
 }
@@ -55,8 +55,8 @@ func (s *service) Shorten(url, userID string) (string, error) {
 
 // Return by id
 
-func (s *service) Expand(urlID, userID string) (string, error) {
-	url, err := s.repository.Get(urlID, userID)
+func (s *service) Expand(urlID string) (string, error) {
+	url, err := s.repository.Get(urlID)
 	if err != nil {
 		log.WithError(err).WithField("urlID", urlID).Error("get url error")
 		return "", err

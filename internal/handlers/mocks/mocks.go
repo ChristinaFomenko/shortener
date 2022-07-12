@@ -36,18 +36,18 @@ func (m *Mockservice) EXPECT() *MockserviceMockRecorder {
 }
 
 // Expand mocks base method.
-func (m *Mockservice) Expand(id, userID string) (string, error) {
+func (m *Mockservice) Expand(id string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Expand", id, userID)
+	ret := m.ctrl.Call(m, "Expand", id)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Expand indicates an expected call of Expand.
-func (mr *MockserviceMockRecorder) Expand(id, userID interface{}) *gomock.Call {
+func (mr *MockserviceMockRecorder) Expand(id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Expand", reflect.TypeOf((*Mockservice)(nil).Expand), id, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Expand", reflect.TypeOf((*Mockservice)(nil).Expand), id)
 }
 
 // GetList mocks base method.

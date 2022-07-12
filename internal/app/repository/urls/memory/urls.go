@@ -36,21 +36,17 @@ func (r *repository) Add(urlID, userID, url string) error {
 }
 
 // Get URL
-func (r *repository) Get(urlID, userID string) (string, error) {
+func (r *repository) Get(urlID string) (string, error) {
 	r.ma.RLock()
 	defer r.ma.RUnlock()
 
-	userStore, ok := r.store[userID]
-	if !ok {
-		return "", ErrURLNotFound
+	for _, userStore := range r.store {
+		if url, ok := userStore[urlID]; ok {
+			return url, nil
+		}
 	}
 
-	url, ok := userStore[urlID]
-	if !ok {
-		return "", ErrURLNotFound
-	}
-
-	return url, nil
+	return "", ErrURLNotFound
 }
 
 func (r *repository) GetList(userID string) ([]models.UserURL, error) {

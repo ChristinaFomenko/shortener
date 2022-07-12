@@ -16,7 +16,7 @@ import (
 
 type service interface {
 	Shorten(url string, userID string) (string, error)
-	Expand(id string, userID string) (string, error)
+	Expand(id string) (string, error)
 	GetList(userID string) ([]models.UserURL, error)
 	Ping() error
 }
@@ -73,9 +73,7 @@ func (h *handler) Expand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := h.auth.UserID(r.Context())
-
-	url, err := h.service.Expand(id, userID)
+	url, err := h.service.Expand(id)
 	if err != nil {
 		http.Error(w, "url not found", http.StatusNoContent)
 		return
@@ -126,6 +124,7 @@ func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
 	_, err = w.Write(marshal)
 	if err != nil {
 		log.WithError(err).WithField("shortcut", shortcut).Error("write response error")
+		http.Error(w, err.Error(), 500)
 		return
 	}
 }
@@ -145,6 +144,7 @@ func (h *handler) GetList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
 
 	resp := toGetUrlsReply(urls)
 	body, err := json.Marshal(&resp)
@@ -155,10 +155,10 @@ func (h *handler) GetList(w http.ResponseWriter, r *http.Request) {
 	_, err = w.Write(body)
 	if err != nil {
 		log.WithError(err).WithField("resp", urls).Error("write response error")
+		http.Error(w, err.Error(), 500)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
 }
 
 func (h *handler) Ping(w http.ResponseWriter, r *http.Request) {

@@ -82,10 +82,10 @@ func Test_service_Expand(t *testing.T) {
 
 	for _, tt := range tests {
 		repositoryMock := mocks.NewMockurlRepository(ctrl)
-		repositoryMock.EXPECT().Get(tt.shortcut, defaultUserID).Return(tt.url, tt.err)
+		repositoryMock.EXPECT().Get(tt.shortcut).Return(tt.url, tt.err)
 
 		s := NewService(repositoryMock, nil, host, nil)
-		act, err := s.Expand(tt.shortcut, defaultUserID)
+		act, err := s.Expand(tt.shortcut)
 
 		assert.Equal(t, tt.err, err)
 		assert.Equal(t, tt.url, act)

@@ -35,7 +35,7 @@ func TestFileRepo_Get(t *testing.T) {
 	err = repo.Add("abc", defaultUserID, "yandex.ru")
 	require.NoError(t, err)
 
-	act, err := repo.Get("abc", defaultUserID)
+	act, err := repo.Get("abc")
 	require.NoError(t, err)
 
 	assert.Equal(t, "yandex.ru", act)

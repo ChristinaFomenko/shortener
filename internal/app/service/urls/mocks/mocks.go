@@ -49,18 +49,18 @@ func (mr *MockurlRepositoryMockRecorder) Add(urlID, userID, url interface{}) *go
 }
 
 // Get mocks base method.
-func (m *MockurlRepository) Get(urlID, userID string) (string, error) {
+func (m *MockurlRepository) Get(urlID string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", urlID, userID)
+	ret := m.ctrl.Call(m, "Get", urlID)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockurlRepositoryMockRecorder) Get(urlID, userID interface{}) *gomock.Call {
+func (mr *MockurlRepositoryMockRecorder) Get(urlID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockurlRepository)(nil).Get), urlID, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockurlRepository)(nil).Get), urlID)
 }
 
 // GetList mocks base method.
