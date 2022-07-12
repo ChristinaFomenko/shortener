@@ -286,7 +286,7 @@ func TestExpandHandler_Success(t *testing.T) {
 	}
 }
 
-func Test_handler_GetList_Success(t *testing.T) {
+func Test_handler_FetchURls_Success(t *testing.T) {
 	type want struct {
 		contentType string
 		statusCode  int
@@ -326,7 +326,7 @@ func Test_handler_GetList_Success(t *testing.T) {
 			defer ctrl.Finish()
 
 			serviceMock := mock.NewMockservice(ctrl)
-			serviceMock.EXPECT().GetList(defaultUserID).Return(tt.urls, tt.err)
+			serviceMock.EXPECT().FetchURls(defaultUserID).Return(tt.urls, tt.err)
 
 			authMock := mock.NewMockauth(ctrl)
 			authMock.EXPECT().UserID(gomock.Any()).Return(defaultUserID)
@@ -336,7 +336,7 @@ func Test_handler_GetList_Success(t *testing.T) {
 			request := httptest.NewRequest(http.MethodGet, tt.request, nil)
 
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(httpHandler.GetList)
+			h := http.HandlerFunc(httpHandler.FetchURls)
 			h.ServeHTTP(w, request)
 			result := w.Result()
 

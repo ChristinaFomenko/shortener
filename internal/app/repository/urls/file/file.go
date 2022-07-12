@@ -104,7 +104,7 @@ func (r *fileRepository) Get(urlID string) (string, error) {
 	return "", ErrURLNotFound
 }
 
-func (r *fileRepository) GetList(userID string) ([]models.UserURL, error) {
+func (r *fileRepository) FetchURls(userID string) ([]models.UserURL, error) {
 	r.ma.RLock()
 	defer r.ma.RUnlock()
 

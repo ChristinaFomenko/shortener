@@ -48,6 +48,21 @@ func (mr *MockurlRepositoryMockRecorder) Add(urlID, userID, url interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockurlRepository)(nil).Add), urlID, userID, url)
 }
 
+// FetchURls mocks base method.
+func (m *MockurlRepository) FetchURls(userID string) ([]models.UserURL, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FetchURls", userID)
+	ret0, _ := ret[0].([]models.UserURL)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FetchURls indicates an expected call of FetchURls.
+func (mr *MockurlRepositoryMockRecorder) FetchURls(userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchURls", reflect.TypeOf((*MockurlRepository)(nil).FetchURls), userID)
+}
+
 // Get mocks base method.
 func (m *MockurlRepository) Get(urlID string) (string, error) {
 	m.ctrl.T.Helper()
@@ -61,21 +76,6 @@ func (m *MockurlRepository) Get(urlID string) (string, error) {
 func (mr *MockurlRepositoryMockRecorder) Get(urlID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockurlRepository)(nil).Get), urlID)
-}
-
-// GetList mocks base method.
-func (m *MockurlRepository) GetList(userID string) ([]models.UserURL, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetList", userID)
-	ret0, _ := ret[0].([]models.UserURL)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetList indicates an expected call of GetList.
-func (mr *MockurlRepositoryMockRecorder) GetList(userID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetList", reflect.TypeOf((*MockurlRepository)(nil).GetList), userID)
 }
 
 // Ping mocks base method.

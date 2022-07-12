@@ -66,7 +66,7 @@ func main() {
 	router.Post("/", handlers.New(service, auth).Shorten)
 	router.Get("/{id}", handlers.New(service, auth).Expand)
 	router.Post("/api/shorten", handlers.New(service, auth).APIJSONShorten)
-	router.Get("/api/user/urls", handlers.New(service, auth).GetList)
+	router.Get("/api/user/urls", handlers.New(service, auth).FetchURls)
 	router.Get("/ping", handlers.New(service, auth).Ping)
 	//})
 

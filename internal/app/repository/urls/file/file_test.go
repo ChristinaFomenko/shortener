@@ -41,7 +41,7 @@ func TestFileRepo_Get(t *testing.T) {
 	assert.Equal(t, "yandex.ru", act)
 }
 
-func TestFileRepo_GetList_Success(t *testing.T) {
+func TestFileRepo_FetchURls_Success(t *testing.T) {
 	repo, err := NewRepo(filePath)
 	require.NoError(t, err)
 
@@ -58,13 +58,13 @@ func TestFileRepo_GetList_Success(t *testing.T) {
 	repo, err = NewRepo("storage.dat")
 	require.NoError(t, err)
 
-	act, err := repo.GetList(defaultUserID)
+	act, err := repo.FetchURls(defaultUserID)
 	require.NoError(t, err)
 
 	assert.Len(t, act, 2)
 }
 
-func TestFileRepo_GetList_NotFound(t *testing.T) {
+func TestFileRepo_FetchURls_NotFound(t *testing.T) {
 	repo, err := NewRepo(filePath)
 	require.NoError(t, err)
 
@@ -81,7 +81,7 @@ func TestFileRepo_GetList_NotFound(t *testing.T) {
 	repo, err = NewRepo("storage.dat")
 	require.NoError(t, err)
 
-	act, err := repo.GetList("fake")
+	act, err := repo.FetchURls("fake")
 	require.NoError(t, err)
 
 	assert.Len(t, act, 0)

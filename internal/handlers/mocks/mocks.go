@@ -50,19 +50,19 @@ func (mr *MockserviceMockRecorder) Expand(id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Expand", reflect.TypeOf((*Mockservice)(nil).Expand), id)
 }
 
-// GetList mocks base method.
-func (m *Mockservice) GetList(userID string) ([]models.UserURL, error) {
+// FetchURls mocks base method.
+func (m *Mockservice) FetchURls(userID string) ([]models.UserURL, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetList", userID)
+	ret := m.ctrl.Call(m, "FetchURls", userID)
 	ret0, _ := ret[0].([]models.UserURL)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetList indicates an expected call of GetList.
-func (mr *MockserviceMockRecorder) GetList(userID interface{}) *gomock.Call {
+// FetchURls indicates an expected call of FetchURls.
+func (mr *MockserviceMockRecorder) FetchURls(userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetList", reflect.TypeOf((*Mockservice)(nil).GetList), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchURls", reflect.TypeOf((*Mockservice)(nil).FetchURls), userID)
 }
 
 // Ping mocks base method.

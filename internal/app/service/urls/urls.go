@@ -15,7 +15,7 @@ const idLength int64 = 5
 type urlRepository interface {
 	Add(urlID, userID, url string) error
 	Get(urlID string) (string, error)
-	GetList(userID string) ([]models.UserURL, error)
+	FetchURls(userID string) ([]models.UserURL, error)
 	Ping() error
 }
 
@@ -50,7 +50,7 @@ func (s *service) Shorten(url, userID string) (string, error) {
 		return "", err
 	}
 
-	return s.buildShortString(urlID), nil
+	return s.buildShortURL(urlID), nil
 }
 
 // Return by id
@@ -65,15 +65,15 @@ func (s *service) Expand(urlID string) (string, error) {
 	return url, nil
 }
 
-func (s *service) GetList(userID string) ([]models.UserURL, error) {
-	urls, err := s.repository.GetList(userID)
+func (s *service) FetchURls(userID string) ([]models.UserURL, error) {
+	urls, err := s.repository.FetchURls(userID)
 	if err != nil {
 		log.WithError(err).WithField("urlID", userID).Error("get url list error")
 		return nil, err
 	}
 
 	for idx := range urls {
-		urls[idx].ShortURL = s.buildShortString(urls[idx].ShortURL)
+		urls[idx].ShortURL = s.buildShortURL(urls[idx].ShortURL)
 	}
 
 	return urls, nil
@@ -83,6 +83,6 @@ func (s *service) Ping() error {
 	return s.db.Ping()
 }
 
-func (s *service) buildShortString(id string) string {
+func (s *service) buildShortURL(id string) string {
 	return fmt.Sprintf("%s/%s", s.host, id)
 }

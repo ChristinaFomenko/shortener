@@ -92,7 +92,7 @@ func Test_service_Expand(t *testing.T) {
 	}
 }
 
-func Test_service_GetList(t *testing.T) {
+func Test_service_FetchURls(t *testing.T) {
 	tests := []struct {
 		name string
 		urls []models.UserURL
@@ -124,7 +124,7 @@ func Test_service_GetList(t *testing.T) {
 
 	for _, tt := range tests {
 		repositoryMock := mocks.NewMockurlRepository(ctrl)
-		repositoryMock.EXPECT().GetList(defaultUserID).Return(tt.urls, tt.err)
+		repositoryMock.EXPECT().FetchURls(defaultUserID).Return(tt.urls, tt.err)
 
 		s := NewService(repositoryMock, nil, host, nil)
 		act, err := s.GetList(defaultUserID)

@@ -17,7 +17,7 @@ import (
 type service interface {
 	Shorten(url string, userID string) (string, error)
 	Expand(id string) (string, error)
-	GetList(userID string) ([]models.UserURL, error)
+	FetchURls(userID string) ([]models.UserURL, error)
 	Ping() error
 }
 
@@ -129,9 +129,9 @@ func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *handler) GetList(w http.ResponseWriter, r *http.Request) {
+func (h *handler) FetchURls(w http.ResponseWriter, r *http.Request) {
 	userID := h.auth.UserID(r.Context())
-	urls, err := h.service.GetList(userID)
+	urls, err := h.service.FetchURls(userID)
 	if err != nil {
 		log.WithError(err).Error("get urls error")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
