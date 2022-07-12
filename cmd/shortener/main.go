@@ -55,6 +55,9 @@ func main() {
 	router := chi.NewRouter()
 
 	compress, err := middlewares.NewCompressor()
+	if err != nil {
+		log.Fatalf("compressor failed %v", err)
+	}
 
 	auth := middlewares.NewAuthenticator(authSrvc)
 
