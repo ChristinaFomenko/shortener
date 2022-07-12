@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/ChristinaFomenko/shortener/internal/models"
+	"github.com/ChristinaFomenko/shortener/internal/app/models"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

@@ -3,7 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
-	"github.com/ChristinaFomenko/shortener/internal/models"
+	"github.com/ChristinaFomenko/shortener/internal/app/models"
 	"github.com/asaskevich/govalidator"
 	"github.com/go-chi/chi/v5"
 	_ "github.com/jackc/pgx/v4/stdlib"

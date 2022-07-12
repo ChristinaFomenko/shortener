@@ -6,9 +6,9 @@ package mock_handlers
 
 import (
 	context "context"
+	"github.com/ChristinaFomenko/shortener/internal/app/models"
 	reflect "reflect"
 
-	models "github.com/ChristinaFomenko/shortener/internal/models"
 	gomock "github.com/golang/mock/gomock"
 )
 

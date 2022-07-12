@@ -5,9 +5,9 @@
 package mock_urls
 
 import (
+	"github.com/ChristinaFomenko/shortener/internal/app/models"
 	reflect "reflect"
 
-	models "github.com/ChristinaFomenko/shortener/internal/models"
 	gomock "github.com/golang/mock/gomock"
 )
 

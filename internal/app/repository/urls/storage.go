@@ -1,9 +1,9 @@
 package urls
 
 import (
+	"github.com/ChristinaFomenko/shortener/internal/app/models"
 	"github.com/ChristinaFomenko/shortener/internal/app/repository/urls/file"
 	"github.com/ChristinaFomenko/shortener/internal/app/repository/urls/memory"
-	"github.com/ChristinaFomenko/shortener/internal/models"
 )
 
 type Repo interface {

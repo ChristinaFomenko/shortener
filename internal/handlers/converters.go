@@ -1,6 +1,8 @@
 package handlers
 
-import "github.com/ChristinaFomenko/shortener/internal/models"
+import (
+	"github.com/ChristinaFomenko/shortener/internal/app/models"
+)
 
 func toGetUrlsReply(model []models.UserURL) []GetUrlsReply {
 	reply := make([]GetUrlsReply, len(model))

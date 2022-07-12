@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/ChristinaFomenko/shortener/internal/models"
+	"github.com/ChristinaFomenko/shortener/internal/app/models"
 	"os"
 	"sync"
 )

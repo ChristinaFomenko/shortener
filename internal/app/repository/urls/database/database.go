@@ -2,7 +2,7 @@ package database
 
 import (
 	"database/sql"
-	"github.com/ChristinaFomenko/shortener/internal/models"
+	"github.com/ChristinaFomenko/shortener/internal/app/models"
 	_ "github.com/jackc/pgx/v4"
 )
 

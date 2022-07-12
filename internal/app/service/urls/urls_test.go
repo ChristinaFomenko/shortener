@@ -2,7 +2,7 @@ package urls
 
 import (
 	"errors"
-	"github.com/ChristinaFomenko/shortener/internal/models"
+	"github.com/ChristinaFomenko/shortener/internal/app/models"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"testing"

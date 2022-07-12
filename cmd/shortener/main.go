@@ -51,15 +51,19 @@ func main() {
 	service := serviceURL.NewService(repository, helper, cfg.BaseURL, databaseService)
 	authSrvc := authService.NewService(helper, hash)
 
-	auth := middlewares.NewAuthenticator(authSrvc)
-
 	// Route
 	router := chi.NewRouter()
+
+	compress, err := middlewares.NewCompressor()
+
+	auth := middlewares.NewAuthenticator(authSrvc)
+
 	router.Use(middleware.RequestID)
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
-	router.Use(middlewares.GZIPMiddleware)
+	router.Use(middlewares.Decompressing)
+	router.Use(compress.Compressing)
 	router.Use(auth.Auth)
 
 	//router.Route("/", func(r chi.Router) {

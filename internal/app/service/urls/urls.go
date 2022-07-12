@@ -2,8 +2,8 @@ package urls
 
 import (
 	"fmt"
+	"github.com/ChristinaFomenko/shortener/internal/app/models"
 	"github.com/ChristinaFomenko/shortener/internal/app/repository/urls/database"
-	"github.com/ChristinaFomenko/shortener/internal/models"
 	_ "github.com/jackc/pgx/v4"
 	log "github.com/sirupsen/logrus"
 )
