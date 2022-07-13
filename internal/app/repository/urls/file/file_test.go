@@ -57,10 +57,10 @@ func TestFileRepo_FetchURls_Success(t *testing.T) {
 		_ = os.Remove(filePath)
 	}()
 
-	_, err = repo.Add(ctx, "abcde", defaultUserID, "yandex.ru")
+	_, err = repo.Add(ctx, "abcde", "yandex.ru", defaultUserID)
 	require.NoError(t, err)
 
-	_, err = repo.Add(ctx, "edcba", defaultUserID, "yandex.ru")
+	_, err = repo.Add(ctx, "edcba", "yandex.ru", defaultUserID)
 	require.NoError(t, err)
 
 	repo, err = NewRepo("storage.dat")
@@ -82,10 +82,10 @@ func TestFileRepo_FetchURls_NotFound(t *testing.T) {
 		_ = os.Remove(filePath)
 	}()
 
-	_, err = repo.Add(ctx, "qwerty", defaultUserID, "avito.ru")
+	_, err = repo.Add(ctx, "qwerty", "avito.ru", defaultUserID)
 	require.NoError(t, err)
 
-	_, err = repo.Add(ctx, "ytrewq", defaultUserID, "yandex.ru")
+	_, err = repo.Add(ctx, "ytrewq", "yandex.ru", defaultUserID)
 	require.NoError(t, err)
 
 	repo, err = NewRepo("storage.dat")

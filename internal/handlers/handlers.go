@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"github.com/ChristinaFomenko/shortener/internal/app/models"
 	"github.com/asaskevich/govalidator"
 	"github.com/go-chi/chi/v5"
@@ -13,6 +14,11 @@ import (
 )
 
 //go:generate mockgen -source=handlers.go -destination=mocks/mocks.go
+
+var (
+	ErrURLNotFound = errors.New("url not found error")
+	ErrURLConflict = errors.New("urls conflict")
+)
 
 type service interface {
 	Shorten(ctx context.Context, url string, userID string) (string, error)
@@ -57,8 +63,12 @@ func (h *handler) Shorten(w http.ResponseWriter, r *http.Request) {
 	url := string(bytes)
 	shortcut, err := h.service.Shorten(r.Context(), url, userID)
 	if err != nil {
-		log.WithError(err).WithField("url", url).Error("shorten url error")
-		http.Error(w, "url shortcut", http.StatusInternalServerError)
+		if errors.Is(err, ErrURLConflict) {
+			http.Error(w, "url shortcut", http.StatusConflict)
+			return
+		}
+
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -81,7 +91,12 @@ func (h *handler) Expand(w http.ResponseWriter, r *http.Request) {
 
 	url, err := h.service.Expand(r.Context(), id)
 	if err != nil {
-		http.Error(w, "url not found", http.StatusNoContent)
+		if errors.Is(err, ErrURLNotFound) {
+			http.Error(w, "url not found", http.StatusNoContent)
+			return
+		}
+
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

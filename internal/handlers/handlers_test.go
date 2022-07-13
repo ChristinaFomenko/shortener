@@ -395,10 +395,10 @@ func TestGetUrlsHandler_Ping(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			infraMock := mock.NewMockpingService(ctrl)
-			infraMock.EXPECT().Ping(ctx).Return(tt.success)
+			pingMock := mock.NewMockpingService(ctrl)
+			pingMock.EXPECT().Ping(ctx).Return(tt.success)
 
-			httpHandler := New(nil, nil, infraMock)
+			httpHandler := New(nil, nil, pingMock)
 
 			request := httptest.NewRequest(http.MethodGet, tt.request, nil)
 

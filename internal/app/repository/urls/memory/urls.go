@@ -21,7 +21,7 @@ func NewRepo() *repository {
 }
 
 // Add URL
-func (r *repository) Add(_ context.Context, urlID, userID, url string) (string, error) {
+func (r *repository) Add(_ context.Context, urlID, url, userID string) (string, error) {
 	r.ma.Lock()
 	defer r.ma.Unlock()
 
