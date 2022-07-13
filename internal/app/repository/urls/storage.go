@@ -2,7 +2,9 @@ package urls
 
 import (
 	"context"
+	"fmt"
 	"github.com/ChristinaFomenko/shortener/internal/app/models"
+	"github.com/ChristinaFomenko/shortener/internal/app/repository/urls/database"
 	"github.com/ChristinaFomenko/shortener/internal/app/repository/urls/file"
 	"github.com/ChristinaFomenko/shortener/internal/app/repository/urls/memory"
 )
@@ -10,19 +12,26 @@ import (
 type Repo interface {
 	Add(urlID, userID, url string) error
 	Get(urlID string) (string, error)
-	FetchURls(userID string) ([]models.UserURL, error)
+	FetchURLs(userID string) ([]models.UserURL, error)
 	Ping(ctx context.Context) error
 }
 
-func NewStorage(filePath string) (Repo, error) {
-	if filePath != "" {
+func NewStorage(filePath string, databaseDSN string) (Repo, error) {
+	switch {
+	case databaseDSN != "":
+		r, err := database.NewRepo(databaseDSN)
+		if err != nil {
+			return nil, fmt.Errorf("initialize file repo error: %w", err)
+		}
+		return r, nil
+
+	case filePath != "":
+
 		r, err := file.NewRepo(filePath)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("initialize file repo error: %w", err)
 		}
-
 		return r, nil
 	}
-
 	return memory.NewRepo(), nil
 }

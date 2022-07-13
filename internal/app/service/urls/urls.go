@@ -3,7 +3,6 @@ package urls
 import (
 	"fmt"
 	"github.com/ChristinaFomenko/shortener/internal/app/models"
-	"github.com/ChristinaFomenko/shortener/internal/app/repository/urls/database"
 	_ "github.com/jackc/pgx/v4"
 	log "github.com/sirupsen/logrus"
 )
@@ -26,15 +25,13 @@ type service struct {
 	repository urlRepository
 	generator  generator
 	host       string
-	db         *database.Database
 }
 
-func NewService(repository urlRepository, generator generator, host string, db *database.Database) *service {
+func NewService(repository urlRepository, generator generator, host string) *service {
 	return &service{
 		repository: repository,
 		generator:  generator,
 		host:       host,
-		db:         db,
 	}
 }
 

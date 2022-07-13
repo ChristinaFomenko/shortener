@@ -17,7 +17,7 @@ import (
 type service interface {
 	Shorten(url string, userID string) (string, error)
 	Expand(id string) (string, error)
-	FetchURls(userID string) ([]models.UserURL, error)
+	FetchURLs(userID string) ([]models.UserURL, error)
 }
 
 type auth interface {
@@ -134,7 +134,7 @@ func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *handler) FetchURls(w http.ResponseWriter, r *http.Request) {
+func (h *handler) FetchURLs(w http.ResponseWriter, r *http.Request) {
 	userID := h.auth.UserID(r.Context())
 	urls, err := h.service.FetchURls(userID)
 	if err != nil {

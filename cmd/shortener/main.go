@@ -1,12 +1,10 @@
 package main
 
 import (
-	"database/sql"
 	"github.com/ChristinaFomenko/shortener/configs"
 	"github.com/ChristinaFomenko/shortener/internal/app/generator"
 	"github.com/ChristinaFomenko/shortener/internal/app/hasher"
 	repositoryURL "github.com/ChristinaFomenko/shortener/internal/app/repository/urls"
-	"github.com/ChristinaFomenko/shortener/internal/app/repository/urls/database"
 	authService "github.com/ChristinaFomenko/shortener/internal/app/service/auth"
 	"github.com/ChristinaFomenko/shortener/internal/app/service/ping_service"
 	serviceURL "github.com/ChristinaFomenko/shortener/internal/app/service/urls"
@@ -28,19 +26,6 @@ func main() {
 		log.Fatalf("failed to retrieve env variables, %v", err)
 	}
 
-	// Database
-	db, err := sql.Open("pgx", cfg.DatabaseDSN)
-	if err != nil {
-		log.Fatalf("failed to connnect db %v", err)
-	}
-	defer db.Close()
-
-	_, err = db.Exec(database.CreateTable)
-	if err != nil {
-		log.Infof("failed to create create table %v", err)
-	}
-	databaseService := database.NewDatabase(db)
-
 	// Repositories
 	repository, err := repositoryURL.NewStorage(cfg.FileStoragePath)
 	if err != nil {
@@ -50,7 +35,7 @@ func main() {
 	// Services
 	helper := generator.NewGenerator()
 	hash := hasher.NewHasher(cfg.SecretKey)
-	service := serviceURL.NewService(repository, helper, cfg.BaseURL, databaseService)
+	service := serviceURL.NewService(repository, helper, cfg.BaseURL)
 	authSrvc := authService.NewService(helper, hash)
 	pingService := ping_service.NewService(repository)
 

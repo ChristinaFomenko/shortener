@@ -50,7 +50,7 @@ func (r *repository) Get(urlID string) (string, error) {
 	return "", ErrURLNotFound
 }
 
-func (r *repository) FetchURls(userID string) ([]models.UserURL, error) {
+func (r *repository) FetchURLs(userID string) ([]models.UserURL, error) {
 	r.ma.Lock()
 	defer r.ma.Unlock()
 
