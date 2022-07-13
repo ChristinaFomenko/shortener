@@ -1,9 +1,9 @@
-package ping_service
+package ping
 
 import (
 	"context"
 	"errors"
-	mock_ping_service "github.com/ChristinaFomenko/shortener/internal/app/service/ping_service/mocks"
+	mock_ping_service "github.com/ChristinaFomenko/shortener/internal/app/service/ping/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"testing"
