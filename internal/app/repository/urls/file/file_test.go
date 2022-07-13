@@ -1,6 +1,7 @@
 package file
 
 import (
+	"context"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"os"
@@ -85,4 +86,18 @@ func TestFileRepo_FetchURls_NotFound(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Len(t, act, 0)
+}
+
+func TestFileRepo_Ping(t *testing.T) {
+	ctx := context.Background()
+
+	repo, err := NewRepo(filePath)
+	require.NoError(t, err)
+
+	defer func() {
+		_ = os.Remove(filePath)
+	}()
+
+	err = repo.Ping(ctx)
+	assert.NoError(t, err)
 }

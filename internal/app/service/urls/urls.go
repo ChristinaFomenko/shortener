@@ -16,7 +16,6 @@ type urlRepository interface {
 	Add(urlID, userID, url string) error
 	Get(urlID string) (string, error)
 	FetchURls(userID string) ([]models.UserURL, error)
-	Ping() error
 }
 
 type generator interface {
@@ -77,10 +76,6 @@ func (s *service) FetchURls(userID string) ([]models.UserURL, error) {
 	}
 
 	return urls, nil
-}
-
-func (s *service) Ping() error {
-	return s.db.Ping()
 }
 
 func (s *service) buildShortURL(id string) string {

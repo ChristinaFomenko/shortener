@@ -2,6 +2,7 @@ package file
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -125,6 +126,6 @@ func (r *fileRepository) FetchURls(userID string) ([]models.UserURL, error) {
 	return urls, nil
 }
 
-func (r *fileRepository) Ping() error {
+func (r *fileRepository) Ping(_ context.Context) error {
 	return nil
 }

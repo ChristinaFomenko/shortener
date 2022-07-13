@@ -18,22 +18,27 @@ type service interface {
 	Shorten(url string, userID string) (string, error)
 	Expand(id string) (string, error)
 	FetchURls(userID string) ([]models.UserURL, error)
-	Ping() error
 }
 
 type auth interface {
 	UserID(ctx context.Context) string
 }
 
-type handler struct {
-	service service
-	auth    auth
+type pingService interface {
+	Ping(ctx context.Context) bool
 }
 
-func New(service service, userAuth auth) *handler {
+type handler struct {
+	service     service
+	auth        auth
+	pingService pingService
+}
+
+func New(service service, userAuth auth, pingService pingService) *handler {
 	return &handler{
-		service: service,
-		auth:    userAuth,
+		service:     service,
+		auth:        userAuth,
+		pingService: pingService,
 	}
 }
 
@@ -162,10 +167,8 @@ func (h *handler) FetchURls(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) Ping(w http.ResponseWriter, r *http.Request) {
-	err := h.service.Ping()
-	if err != nil {
-		log.Infof("DB not avalable %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if success := h.pingService.Ping(r.Context()); !success {
+		http.Error(w, "ping database error", http.StatusInternalServerError)
 		return
 	}
 

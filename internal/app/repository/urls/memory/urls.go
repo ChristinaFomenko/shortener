@@ -1,6 +1,7 @@
 package memory
 
 import (
+	"context"
 	"errors"
 	"github.com/ChristinaFomenko/shortener/internal/app/models"
 	"sync"
@@ -70,6 +71,6 @@ func (r *repository) FetchURls(userID string) ([]models.UserURL, error) {
 	return urls, nil
 }
 
-func (r *repository) Ping() error {
+func (r *repository) Ping(_ context.Context) error {
 	return nil
 }
