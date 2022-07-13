@@ -6,9 +6,9 @@ package mock_handlers
 
 import (
 	context "context"
-	"github.com/ChristinaFomenko/shortener/internal/app/models"
 	reflect "reflect"
 
+	models "github.com/ChristinaFomenko/shortener/internal/app/models"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -36,62 +36,48 @@ func (m *Mockservice) EXPECT() *MockserviceMockRecorder {
 }
 
 // Expand mocks base method.
-func (m *Mockservice) Expand(id string) (string, error) {
+func (m *Mockservice) Expand(ctx context.Context, id string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Expand", id)
+	ret := m.ctrl.Call(m, "Expand", ctx, id)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Expand indicates an expected call of Expand.
-func (mr *MockserviceMockRecorder) Expand(id interface{}) *gomock.Call {
+func (mr *MockserviceMockRecorder) Expand(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Expand", reflect.TypeOf((*Mockservice)(nil).Expand), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Expand", reflect.TypeOf((*Mockservice)(nil).Expand), ctx, id)
 }
 
-// FetchURls mocks base method.
-func (m *Mockservice) FetchURls(userID string) ([]models.UserURL, error) {
+// FetchURLs mocks base method.
+func (m *Mockservice) FetchURLs(ctx context.Context, userID string) ([]models.UserURL, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FetchURls", userID)
+	ret := m.ctrl.Call(m, "FetchURLs", ctx, userID)
 	ret0, _ := ret[0].([]models.UserURL)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FetchURls indicates an expected call of FetchURls.
-func (mr *MockserviceMockRecorder) FetchURls(userID interface{}) *gomock.Call {
+// FetchURLs indicates an expected call of FetchURLs.
+func (mr *MockserviceMockRecorder) FetchURLs(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchURls", reflect.TypeOf((*Mockservice)(nil).FetchURls), userID)
-}
-
-// Ping mocks base method.
-func (m *Mockservice) Ping() error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Ping")
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Ping indicates an expected call of Ping.
-func (mr *MockserviceMockRecorder) Ping() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Ping", reflect.TypeOf((*Mockservice)(nil).Ping))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchURLs", reflect.TypeOf((*Mockservice)(nil).FetchURLs), ctx, userID)
 }
 
 // Shorten mocks base method.
-func (m *Mockservice) Shorten(url, userID string) (string, error) {
+func (m *Mockservice) Shorten(ctx context.Context, url, userID string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Shorten", url, userID)
+	ret := m.ctrl.Call(m, "Shorten", ctx, url, userID)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Shorten indicates an expected call of Shorten.
-func (mr *MockserviceMockRecorder) Shorten(url, userID interface{}) *gomock.Call {
+func (mr *MockserviceMockRecorder) Shorten(ctx, url, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shorten", reflect.TypeOf((*Mockservice)(nil).Shorten), url, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shorten", reflect.TypeOf((*Mockservice)(nil).Shorten), ctx, url, userID)
 }
 
 // Mockauth is a mock of auth interface.
@@ -129,4 +115,41 @@ func (m *Mockauth) UserID(ctx context.Context) string {
 func (mr *MockauthMockRecorder) UserID(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserID", reflect.TypeOf((*Mockauth)(nil).UserID), ctx)
+}
+
+// MockpingService is a mock of pingService interface.
+type MockpingService struct {
+	ctrl     *gomock.Controller
+	recorder *MockpingServiceMockRecorder
+}
+
+// MockpingServiceMockRecorder is the mock recorder for MockpingService.
+type MockpingServiceMockRecorder struct {
+	mock *MockpingService
+}
+
+// NewMockpingService creates a new mock instance.
+func NewMockpingService(ctrl *gomock.Controller) *MockpingService {
+	mock := &MockpingService{ctrl: ctrl}
+	mock.recorder = &MockpingServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockpingService) EXPECT() *MockpingServiceMockRecorder {
+	return m.recorder
+}
+
+// Ping mocks base method.
+func (m *MockpingService) Ping(ctx context.Context) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Ping", ctx)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// Ping indicates an expected call of Ping.
+func (mr *MockpingServiceMockRecorder) Ping(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Ping", reflect.TypeOf((*MockpingService)(nil).Ping), ctx)
 }

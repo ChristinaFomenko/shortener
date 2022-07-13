@@ -47,16 +47,18 @@ func TestShortenHandler(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
 			serviceMock := mock.NewMockservice(ctrl)
-			serviceMock.EXPECT().Shorten(tt.url, defaultUserID).Return(tt.shortcut, nil)
+			serviceMock.EXPECT().Shorten(ctx, tt.url, defaultUserID).Return(tt.shortcut, nil)
 
 			authMock := mock.NewMockauth(ctrl)
 			authMock.EXPECT().UserID(gomock.Any()).Return(defaultUserID)
 
-			httpHandler := New(serviceMock, authMock)
+			httpHandler := New(serviceMock, authMock, nil)
 
 			buffer := new(bytes.Buffer)
 			buffer.WriteString(tt.url)
@@ -113,16 +115,18 @@ func TestAPIJSONShorten_Success(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
 			serviceMock := mock.NewMockservice(ctrl)
-			serviceMock.EXPECT().Shorten(tt.url, defaultUserID).Return(tt.shortcut, tt.err)
+			serviceMock.EXPECT().Shorten(ctx, tt.url, defaultUserID).Return(tt.shortcut, tt.err)
 
 			authMock := mock.NewMockauth(ctrl)
 			authMock.EXPECT().UserID(gomock.Any()).Return(defaultUserID)
 
-			httpHandler := New(serviceMock, authMock)
+			httpHandler := New(serviceMock, authMock, nil)
 
 			buffer := new(bytes.Buffer)
 			buffer.WriteString(tt.body)
@@ -192,7 +196,7 @@ func TestAPIJSONShorten_BadRequest(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			httpHandler := New(nil, nil)
+			httpHandler := New(nil, nil, nil)
 
 			buffer := new(bytes.Buffer)
 			buffer.WriteString(tt.body)
@@ -254,9 +258,9 @@ func TestExpandHandler_Success(t *testing.T) {
 			defer ctrl.Finish()
 
 			urlsSrvMock := mock.NewMockservice(ctrl)
-			urlsSrvMock.EXPECT().Expand(tt.urlID).Return(tt.url, tt.err)
+			urlsSrvMock.EXPECT().Expand(gomock.Any(), tt.urlID).Return(tt.url, tt.err)
 
-			httpHandler := New(urlsSrvMock, nil)
+			httpHandler := New(urlsSrvMock, nil, nil)
 
 			request := httptest.NewRequest(http.MethodGet, tt.request, nil)
 			rctx := chi.NewRouteContext()
@@ -286,7 +290,7 @@ func TestExpandHandler_Success(t *testing.T) {
 	}
 }
 
-func Test_handler_FetchURls_Success(t *testing.T) {
+func Test_handler_FetchURLs_Success(t *testing.T) {
 	type want struct {
 		contentType string
 		statusCode  int
@@ -322,21 +326,23 @@ func Test_handler_FetchURls_Success(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
 			serviceMock := mock.NewMockservice(ctrl)
-			serviceMock.EXPECT().FetchURls(defaultUserID).Return(tt.urls, tt.err)
+			serviceMock.EXPECT().FetchURLs(ctx, defaultUserID).Return(tt.urls, tt.err)
 
 			authMock := mock.NewMockauth(ctrl)
 			authMock.EXPECT().UserID(gomock.Any()).Return(defaultUserID)
 
-			httpHandler := New(serviceMock, authMock)
+			httpHandler := New(serviceMock, authMock, nil)
 
 			request := httptest.NewRequest(http.MethodGet, tt.request, nil)
 
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(httpHandler.FetchURls)
+			h := http.HandlerFunc(httpHandler.FetchURLs)
 			h.ServeHTTP(w, request)
 			result := w.Result()
 
@@ -351,6 +357,60 @@ func Test_handler_FetchURls_Success(t *testing.T) {
 			require.NoError(t, err)
 
 			assert.Equal(t, tt.want.response, string(userResult))
+		})
+	}
+}
+
+func TestGetUrlsHandler_Ping(t *testing.T) {
+	type want struct {
+		statusCode int
+	}
+	tests := []struct {
+		name    string
+		request string
+		success bool
+		want    want
+	}{
+		{
+			name:    "success",
+			success: true,
+			want: want{
+				statusCode: 200,
+			},
+			request: "/ping",
+		},
+		{
+			name:    "fail",
+			success: false,
+			want: want{
+				statusCode: 500,
+			},
+			request: "/ping",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			infraMock := mock.NewMockpingService(ctrl)
+			infraMock.EXPECT().Ping(ctx).Return(tt.success)
+
+			httpHandler := New(nil, nil, infraMock)
+
+			request := httptest.NewRequest(http.MethodGet, tt.request, nil)
+
+			w := httptest.NewRecorder()
+			h := http.HandlerFunc(httpHandler.Ping)
+			h.ServeHTTP(w, request)
+
+			result := w.Result()
+			err := result.Body.Close()
+			require.NoError(t, err)
+
+			assert.Equal(t, tt.want.statusCode, result.StatusCode)
 		})
 	}
 }
