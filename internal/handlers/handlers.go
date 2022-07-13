@@ -18,6 +18,7 @@ type service interface {
 	Shorten(ctx context.Context, url string, userID string) (string, error)
 	Expand(ctx context.Context, id string) (string, error)
 	FetchURLs(ctx context.Context, userID string) ([]models.UserURL, error)
+	ShortenBatch(ctx context.Context, originalURLs []models.OriginalURL, userID string) ([]models.UserURL, error)
 }
 
 type auth interface {
@@ -94,7 +95,7 @@ func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req := models.ShortenRequest{}
+	req := ShortenRequest{}
 	if err = json.Unmarshal(b, &req); err != nil {
 		http.Error(w, "request in not valid", http.StatusBadRequest)
 		return
@@ -118,7 +119,7 @@ func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 
-	resp := models.ShortenReply{ShortenURLResult: shortcut}
+	resp := ShortenReply{ShortenURLResult: shortcut}
 	marshal, err := json.Marshal(&resp)
 	if err != nil {
 		log.WithError(err).WithField("resp", resp).Error("marshal response error")
@@ -173,4 +174,45 @@ func (h *handler) Ping(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func (h *handler) ShortenBatch(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var req []ShortenBatchRequest
+	if err = json.Unmarshal(body, &req); err != nil {
+		http.Error(w, "request in not valid", http.StatusBadRequest)
+		return
+	}
+
+	userID := h.auth.UserID(r.Context())
+	originalUrls := toShortenBatchRequest(req)
+
+	urls, err := h.service.ShortenBatch(r.Context(), originalUrls, userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	resp := toShortenBatchReply(urls)
+	marshal, err := json.Marshal(&resp)
+	if err != nil {
+		log.WithError(err).WithField("resp", resp).Error("marshal response error")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	_, err = w.Write(marshal)
+	if err != nil {
+		log.WithError(err).WithField("urls", urls).Error("write response error")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }

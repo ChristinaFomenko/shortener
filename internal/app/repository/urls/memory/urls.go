@@ -21,7 +21,7 @@ func NewRepo() *repository {
 }
 
 // Add URL
-func (r *repository) Add(_ context.Context, urlID, userID, url string) error {
+func (r *repository) Add(_ context.Context, urlID, userID, url string) (string, error) {
 	r.ma.Lock()
 	defer r.ma.Unlock()
 
@@ -33,7 +33,7 @@ func (r *repository) Add(_ context.Context, urlID, userID, url string) error {
 	userStore[urlID] = url
 	r.store[userID] = userStore
 
-	return nil
+	return url, nil
 }
 
 // Get URL
@@ -72,5 +72,23 @@ func (r *repository) FetchURLs(_ context.Context, userID string) ([]models.UserU
 }
 
 func (r *repository) Ping(_ context.Context) error {
+	return nil
+}
+
+func (r *repository) AddBatch(_ context.Context, urls []models.UserURL, userID string) error {
+	r.ma.Lock()
+	defer r.ma.Unlock()
+
+	userStore, ok := r.store[userID]
+	if !ok {
+		userStore = map[string]string{}
+	}
+
+	for idx := range urls {
+		userStore[urls[idx].ShortURL] = urls[idx].OriginalURL
+	}
+
+	r.store[userID] = userStore
+
 	return nil
 }

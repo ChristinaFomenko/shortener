@@ -49,7 +49,7 @@ func Test_service_Shorten(t *testing.T) {
 		generatorMock.EXPECT().Letters(idLength).Return(tt.urlID)
 
 		repositoryMock := mocks.NewMockurlRepository(ctrl)
-		repositoryMock.EXPECT().Add(ctx, tt.urlID, defaultUserID, tt.url).Return(tt.err)
+		repositoryMock.EXPECT().Add(ctx, tt.urlID, defaultUserID, tt.url).Return(tt.url, tt.err)
 
 		s := NewService(repositoryMock, generatorMock, host)
 		act, err := s.Shorten(ctx, tt.url, defaultUserID)

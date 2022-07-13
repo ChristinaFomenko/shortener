@@ -58,7 +58,7 @@ func readLines(filePath string) (map[string]map[string]string, error) {
 }
 
 // Add URL
-func (r *fileRepository) Add(_ context.Context, urlID, userID, url string) error {
+func (r *fileRepository) Add(_ context.Context, urlID, userID, url string) (string, error) {
 	r.ma.Lock()
 	defer r.ma.Unlock()
 
@@ -70,7 +70,10 @@ func (r *fileRepository) Add(_ context.Context, urlID, userID, url string) error
 	userStore[urlID] = url
 	r.store[userID] = userStore
 
-	return r.save()
+	if err := r.save(); err != nil {
+		return "", err
+	}
+	return url, nil
 }
 
 // Get URL
@@ -106,6 +109,24 @@ func (r *fileRepository) FetchURLs(_ context.Context, userID string) ([]models.U
 	}
 
 	return urls, nil
+}
+
+func (r *fileRepository) AddBatch(_ context.Context, urls []models.UserURL, userID string) error {
+	r.ma.Lock()
+	defer r.ma.Unlock()
+
+	userStore, ok := r.store[userID]
+	if !ok {
+		userStore = map[string]string{}
+	}
+
+	for idx := range urls {
+		userStore[urls[idx].ShortURL] = urls[idx].OriginalURL
+	}
+
+	r.store[userID] = userStore
+
+	return r.save()
 }
 
 func (r *fileRepository) Ping(_ context.Context) error {

@@ -1,14 +1,12 @@
 package models
 
-type ShortenRequest struct {
-	URL string `json:"url" valid:"url,required"`
-}
-
-type ShortenReply struct {
-	ShortenURLResult string `json:"result"`
+type OriginalURL struct {
+	CorrelationID string
+	URL           string
 }
 
 type UserURL struct {
-	ShortURL    string
-	OriginalURL string
+	CorrelationID string
+	ShortURL      string
+	OriginalURL   string
 }

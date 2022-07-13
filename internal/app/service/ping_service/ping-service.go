@@ -5,7 +5,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-//go:generate mockgen -source=ping_service.go -destination=mocks/mocks.go
+//go:generate mockgen -source=ping-service.go -destination=mocks/mocks.go
 
 type urlRepo interface {
 	Ping(ctx context.Context) error

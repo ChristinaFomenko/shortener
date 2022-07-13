@@ -10,10 +10,11 @@ import (
 )
 
 type Repo interface {
-	Add(ctx context.Context, urlID, userID, url string) error
+	Add(ctx context.Context, urlID, userID, url string) (string, error)
 	Get(ctx context.Context, urlID string) (string, error)
 	FetchURLs(ctx context.Context, userID string) ([]models.UserURL, error)
 	Ping(ctx context.Context) error
+	AddBatch(ctx context.Context, urls []models.UserURL, userID string) error
 }
 
 func NewStorage(filePath string, databaseDSN string) (Repo, error) {
@@ -21,7 +22,7 @@ func NewStorage(filePath string, databaseDSN string) (Repo, error) {
 	case databaseDSN != "":
 		r, err := database.NewRepo(databaseDSN)
 		if err != nil {
-			return nil, fmt.Errorf("initialize file repo error: %w", err)
+			return nil, fmt.Errorf("initialize database repo error: %w", err)
 		}
 		return r, nil
 

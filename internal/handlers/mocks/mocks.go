@@ -80,6 +80,21 @@ func (mr *MockserviceMockRecorder) Shorten(ctx, url, userID interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shorten", reflect.TypeOf((*Mockservice)(nil).Shorten), ctx, url, userID)
 }
 
+// ShortenBatch mocks base method.
+func (m *Mockservice) ShortenBatch(ctx context.Context, originalURLs []models.OriginalURL, userID string) ([]models.UserURL, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ShortenBatch", ctx, originalURLs, userID)
+	ret0, _ := ret[0].([]models.UserURL)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ShortenBatch indicates an expected call of ShortenBatch.
+func (mr *MockserviceMockRecorder) ShortenBatch(ctx, originalURLs, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ShortenBatch", reflect.TypeOf((*Mockservice)(nil).ShortenBatch), ctx, originalURLs, userID)
+}
+
 // Mockauth is a mock of auth interface.
 type Mockauth struct {
 	ctrl     *gomock.Controller
