@@ -58,7 +58,7 @@ func readLines(filePath string) (map[string]map[string]string, error) {
 }
 
 // Add URL
-func (r *fileRepository) Add(_ context.Context, urlID, userID, url string) (string, error) {
+func (r *fileRepository) Add(_ context.Context, urlID, url, userID string) (string, error) {
 	r.ma.Lock()
 	defer r.ma.Unlock()
 

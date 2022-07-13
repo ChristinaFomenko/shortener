@@ -23,7 +23,7 @@ func TestFileRepo_Add(t *testing.T) {
 		_ = os.Remove(filePath)
 	}()
 
-	action, err := repo.Add(ctx, "qwe", defaultUserID, "yandex.ru")
+	action, err := repo.Add(ctx, "qwe", "yandex.ru", defaultUserID)
 	require.NoError(t, err, action)
 }
 
@@ -37,12 +37,13 @@ func TestFileRepo_Get(t *testing.T) {
 		_ = os.Remove(filePath)
 	}()
 
-	act, err := repo.Add(ctx, "abc", defaultUserID, "yandex.ru")
+	act, err := repo.Add(ctx, "abc", "yandex.ru", defaultUserID)
 	require.NoError(t, err)
+	require.Equal(t, "yandex.ru", act)
 
 	act, err = repo.Get(ctx, "abc")
-	require.NoError(t, err)
 
+	assert.NoError(t, err)
 	assert.Equal(t, "yandex.ru", act)
 }
 
