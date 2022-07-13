@@ -2,6 +2,7 @@ package urls
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/ChristinaFomenko/shortener/internal/app/models"
 	_ "github.com/jackc/pgx/v4"
@@ -11,6 +12,8 @@ import (
 //go:generate mockgen -source=urls.go -destination=mocks/mocks.go
 
 const idLength int64 = 5
+
+var ErrURLNotFound = errors.New("url not found error")
 
 type urlRepository interface {
 	Add(ctx context.Context, urlID, userID, url string) (string, error)
@@ -56,6 +59,9 @@ func (s *service) Shorten(ctx context.Context, url, userID string) (string, erro
 func (s *service) Expand(ctx context.Context, urlID string) (string, error) {
 	url, err := s.repository.Get(ctx, urlID)
 	if err != nil {
+		if errors.Is(err, ErrURLNotFound) {
+			return "", ErrURLNotFound
+		}
 		log.WithError(err).WithField("urlID", urlID).Error("get url error")
 		return "", err
 	}
