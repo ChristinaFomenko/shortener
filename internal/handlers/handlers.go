@@ -15,9 +15,9 @@ import (
 //go:generate mockgen -source=handlers.go -destination=mocks/mocks.go
 
 type service interface {
-	Shorten(url string, userID string) (string, error)
-	Expand(id string) (string, error)
-	FetchURLs(userID string) ([]models.UserURL, error)
+	Shorten(ctx context.Context, url string, userID string) (string, error)
+	Expand(ctx context.Context, id string) (string, error)
+	FetchURLs(ctx context.Context, userID string) ([]models.UserURL, error)
 }
 
 type auth interface {
@@ -54,7 +54,7 @@ func (h *handler) Shorten(w http.ResponseWriter, r *http.Request) {
 	userID := h.auth.UserID(r.Context())
 
 	url := string(bytes)
-	shortcut, err := h.service.Shorten(url, userID)
+	shortcut, err := h.service.Shorten(r.Context(), url, userID)
 	if err != nil {
 		log.WithError(err).WithField("url", url).Error("shorten url error")
 		http.Error(w, "url shortcut", http.StatusInternalServerError)
@@ -78,7 +78,7 @@ func (h *handler) Expand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	url, err := h.service.Expand(id)
+	url, err := h.service.Expand(r.Context(), id)
 	if err != nil {
 		http.Error(w, "url not found", http.StatusNoContent)
 		return
@@ -108,7 +108,7 @@ func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
 
 	userID := h.auth.UserID(r.Context())
 
-	shortcut, err := h.service.Shorten(req.URL, userID)
+	shortcut, err := h.service.Shorten(r.Context(), req.URL, userID)
 	if err != nil {
 		log.WithError(err).WithField("url", req.URL).Error("shorten url error")
 		http.Error(w, err.Error(), 400)
@@ -136,7 +136,7 @@ func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) FetchURLs(w http.ResponseWriter, r *http.Request) {
 	userID := h.auth.UserID(r.Context())
-	urls, err := h.service.FetchURls(userID)
+	urls, err := h.service.FetchURLs(r.Context(), userID)
 	if err != nil {
 		log.WithError(err).Error("get urls error")
 		http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -21,7 +21,7 @@ func NewRepo() *repository {
 }
 
 // Add URL
-func (r *repository) Add(urlID, userID, url string) error {
+func (r *repository) Add(_ context.Context, urlID, userID, url string) error {
 	r.ma.Lock()
 	defer r.ma.Unlock()
 
@@ -37,7 +37,7 @@ func (r *repository) Add(urlID, userID, url string) error {
 }
 
 // Get URL
-func (r *repository) Get(urlID string) (string, error) {
+func (r *repository) Get(_ context.Context, urlID string) (string, error) {
 	r.ma.RLock()
 	defer r.ma.RUnlock()
 
@@ -50,7 +50,7 @@ func (r *repository) Get(urlID string) (string, error) {
 	return "", ErrURLNotFound
 }
 
-func (r *repository) FetchURLs(userID string) ([]models.UserURL, error) {
+func (r *repository) FetchURLs(_ context.Context, userID string) ([]models.UserURL, error) {
 	r.ma.Lock()
 	defer r.ma.Unlock()
 

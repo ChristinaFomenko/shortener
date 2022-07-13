@@ -10,9 +10,9 @@ import (
 )
 
 type Repo interface {
-	Add(urlID, userID, url string) error
-	Get(urlID string) (string, error)
-	FetchURLs(userID string) ([]models.UserURL, error)
+	Add(ctx context.Context, urlID, userID, url string) error
+	Get(ctx context.Context, urlID string) (string, error)
+	FetchURLs(ctx context.Context, userID string) ([]models.UserURL, error)
 	Ping(ctx context.Context) error
 }
 

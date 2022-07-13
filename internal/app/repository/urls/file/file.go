@@ -2,8 +2,9 @@ package file
 
 import (
 	"bufio"
+	"bytes"
 	"context"
-	"encoding/json"
+	"encoding/gob"
 	"errors"
 	"fmt"
 	"github.com/ChristinaFomenko/shortener/internal/app/models"
@@ -32,7 +33,7 @@ func NewRepo(filePath string) (*fileRepository, error) {
 }
 
 func readLines(filePath string) (map[string]map[string]string, error) {
-	file, err := os.OpenFile(filePath, os.O_CREATE, 0777)
+	file, err := os.OpenFile(filePath, os.O_CREATE, 0600)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +49,7 @@ func readLines(filePath string) (map[string]map[string]string, error) {
 		return res, nil
 	}
 
-	err = json.Unmarshal([]byte(scanner.Text()), &res)
+	res, err = unmarshal(scanner.Bytes())
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +58,7 @@ func readLines(filePath string) (map[string]map[string]string, error) {
 }
 
 // Add URL
-func (r *fileRepository) Add(urlID, userID, url string) error {
+func (r *fileRepository) Add(_ context.Context, urlID, userID, url string) error {
 	r.ma.Lock()
 	defer r.ma.Unlock()
 
@@ -69,30 +70,11 @@ func (r *fileRepository) Add(urlID, userID, url string) error {
 	userStore[urlID] = url
 	r.store[userID] = userStore
 
-	file, err := os.OpenFile(r.filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777)
-	if err != nil {
-		return fmt.Errorf("open file error: %w", err)
-	}
-
-	defer func(file *os.File) {
-		_ = file.Close()
-	}(file)
-
-	data, err := json.Marshal(r.store)
-	if err != nil {
-		return fmt.Errorf("serialize url error: %w", err)
-	}
-
-	_, err = file.WriteString(string(data))
-	if err != nil {
-		return fmt.Errorf("write url to file error: %w", err)
-	}
-
-	return nil
+	return r.save()
 }
 
 // Get URL
-func (r *fileRepository) Get(urlID string) (string, error) {
+func (r *fileRepository) Get(_ context.Context, urlID string) (string, error) {
 	r.ma.RLock()
 	defer r.ma.RUnlock()
 
@@ -105,7 +87,7 @@ func (r *fileRepository) Get(urlID string) (string, error) {
 	return "", ErrURLNotFound
 }
 
-func (r *fileRepository) FetchURLs(userID string) ([]models.UserURL, error) {
+func (r *fileRepository) FetchURLs(_ context.Context, userID string) ([]models.UserURL, error) {
 	r.ma.RLock()
 	defer r.ma.RUnlock()
 
@@ -128,4 +110,53 @@ func (r *fileRepository) FetchURLs(userID string) ([]models.UserURL, error) {
 
 func (r *fileRepository) Ping(_ context.Context) error {
 	return nil
+}
+
+func (r *fileRepository) save() error {
+	file, err := os.OpenFile(r.filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+	if err != nil {
+		return fmt.Errorf("open file error: %w", err)
+	}
+
+	defer func(file *os.File) {
+		_ = file.Close()
+	}(file)
+
+	data, err := marshal(r.store)
+	if err != nil {
+		return fmt.Errorf("serialize url error: %w", err)
+	}
+
+	_, err = file.WriteString(string(data))
+	if err != nil {
+		return fmt.Errorf("write url to file error: %w", err)
+	}
+
+	return nil
+}
+
+func marshal(store map[string]map[string]string) ([]byte, error) {
+	var buff bytes.Buffer
+	encoder := gob.NewEncoder(&buff)
+
+	err := encoder.Encode(store)
+	if err != nil {
+		return nil, err
+	}
+
+	return buff.Bytes(), nil
+}
+
+func unmarshal(data []byte) (map[string]map[string]string, error) {
+	store := map[string]map[string]string{}
+
+	buff := bytes.NewBuffer(data)
+	decoder := gob.NewDecoder(buff)
+
+	err := decoder.Decode(&store)
+	if err != nil {
+		return nil, err
+	}
+
+	return store, nil
 }

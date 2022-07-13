@@ -27,7 +27,7 @@ func main() {
 	}
 
 	// Repositories
-	repository, err := repositoryURL.NewStorage(cfg.FileStoragePath)
+	repository, err := repositoryURL.NewStorage(cfg.FileStoragePath, cfg.DatabaseDSN)
 	if err != nil {
 		log.Fatalf("failed to create a storage %v", err)
 	}
@@ -61,7 +61,7 @@ func main() {
 	router.Post("/", handlers.New(service, auth, pingService).Shorten)
 	router.Get("/{id}", handlers.New(service, auth, pingService).Expand)
 	router.Post("/api/shorten", handlers.New(service, auth, pingService).APIJSONShorten)
-	router.Get("/api/user/urls", handlers.New(service, auth, pingService).FetchURls)
+	router.Get("/api/user/urls", handlers.New(service, auth, pingService).FetchURLs)
 	router.Get("/ping", handlers.New(service, auth, pingService).Ping)
 	//})
 

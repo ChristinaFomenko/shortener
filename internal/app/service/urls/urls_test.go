@@ -1,6 +1,7 @@
 package urls
 
 import (
+	"context"
 	"errors"
 	"github.com/ChristinaFomenko/shortener/internal/app/models"
 	"github.com/golang/mock/gomock"
@@ -38,6 +39,8 @@ func Test_service_Shorten(t *testing.T) {
 		},
 	}
 
+	ctx := context.Background()
+
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -46,10 +49,10 @@ func Test_service_Shorten(t *testing.T) {
 		generatorMock.EXPECT().Letters(idLength).Return(tt.urlID)
 
 		repositoryMock := mocks.NewMockurlRepository(ctrl)
-		repositoryMock.EXPECT().Add(tt.urlID, defaultUserID, tt.url).Return(tt.err)
+		repositoryMock.EXPECT().Add(ctx, tt.urlID, defaultUserID, tt.url).Return(tt.err)
 
-		s := NewService(repositoryMock, generatorMock, host, nil)
-		act, err := s.Shorten(tt.url, defaultUserID)
+		s := NewService(repositoryMock, generatorMock, host)
+		act, err := s.Shorten(ctx, tt.url, defaultUserID)
 
 		assert.Equal(t, tt.err, err)
 		assert.Equal(t, tt.shortcut, act)
@@ -77,22 +80,24 @@ func Test_service_Expand(t *testing.T) {
 		},
 	}
 
+	ctx := context.Background()
+
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	for _, tt := range tests {
 		repositoryMock := mocks.NewMockurlRepository(ctrl)
-		repositoryMock.EXPECT().Get(tt.shortcut).Return(tt.url, tt.err)
+		repositoryMock.EXPECT().Get(ctx, tt.shortcut).Return(tt.url, tt.err)
 
-		s := NewService(repositoryMock, nil, host, nil)
-		act, err := s.Expand(tt.shortcut)
+		s := NewService(repositoryMock, nil, host)
+		act, err := s.Expand(ctx, tt.shortcut)
 
 		assert.Equal(t, tt.err, err)
 		assert.Equal(t, tt.url, act)
 	}
 }
 
-func Test_service_FetchURls(t *testing.T) {
+func Test_service_FetchURLs(t *testing.T) {
 	tests := []struct {
 		name string
 		urls []models.UserURL
@@ -119,15 +124,17 @@ func Test_service_FetchURls(t *testing.T) {
 		},
 	}
 
+	ctx := context.Background()
+
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	for _, tt := range tests {
 		repositoryMock := mocks.NewMockurlRepository(ctrl)
-		repositoryMock.EXPECT().FetchURls(defaultUserID).Return(tt.urls, tt.err)
+		repositoryMock.EXPECT().FetchURLs(ctx, defaultUserID).Return(tt.urls, tt.err)
 
-		s := NewService(repositoryMock, nil, host, nil)
-		act, err := s.FetchURls(defaultUserID)
+		s := NewService(repositoryMock, nil, host)
+		act, err := s.FetchURLs(ctx, defaultUserID)
 
 		assert.Equal(t, tt.err, err)
 		assert.Equal(t, tt.urls, act)

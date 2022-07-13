@@ -1,6 +1,7 @@
 package urls
 
 import (
+	"context"
 	"fmt"
 	"github.com/ChristinaFomenko/shortener/internal/app/models"
 	_ "github.com/jackc/pgx/v4"
@@ -12,9 +13,9 @@ import (
 const idLength int64 = 5
 
 type urlRepository interface {
-	Add(urlID, userID, url string) error
-	Get(urlID string) (string, error)
-	FetchURls(userID string) ([]models.UserURL, error)
+	Add(ctx context.Context, urlID, userID, url string) error
+	Get(ctx context.Context, urlID string) (string, error)
+	FetchURLs(ctx context.Context, userID string) ([]models.UserURL, error)
 }
 
 type generator interface {
@@ -35,9 +36,9 @@ func NewService(repository urlRepository, generator generator, host string) *ser
 	}
 }
 
-func (s *service) Shorten(url, userID string) (string, error) {
+func (s *service) Shorten(ctx context.Context, url, userID string) (string, error) {
 	urlID := s.generator.Letters(idLength)
-	err := s.repository.Add(urlID, userID, url)
+	err := s.repository.Add(ctx, urlID, userID, url)
 	if err != nil {
 		log.WithError(err).
 			WithField("urlID", urlID).
@@ -51,8 +52,8 @@ func (s *service) Shorten(url, userID string) (string, error) {
 
 // Return by id
 
-func (s *service) Expand(urlID string) (string, error) {
-	url, err := s.repository.Get(urlID)
+func (s *service) Expand(ctx context.Context, urlID string) (string, error) {
+	url, err := s.repository.Get(ctx, urlID)
 	if err != nil {
 		log.WithError(err).WithField("urlID", urlID).Error("get url error")
 		return "", err
@@ -61,8 +62,8 @@ func (s *service) Expand(urlID string) (string, error) {
 	return url, nil
 }
 
-func (s *service) FetchURls(userID string) ([]models.UserURL, error) {
-	urls, err := s.repository.FetchURls(userID)
+func (s *service) FetchURLs(ctx context.Context, userID string) ([]models.UserURL, error) {
+	urls, err := s.repository.FetchURLs(ctx, userID)
 	if err != nil {
 		log.WithError(err).WithField("urlID", userID).Error("get url list error")
 		return nil, err
