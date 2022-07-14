@@ -10,8 +10,8 @@ type appConfig struct {
 	ServerAddress   string
 	BaseURL         string
 	FileStoragePath string
-	SecretKey       []byte
 	DatabaseDSN     string
+	SecretKey       []byte
 }
 
 func NewConfig() (*appConfig, error) {
@@ -34,19 +34,20 @@ func NewConfig() (*appConfig, error) {
 		return nil, errors.New("file storage path not specified")
 	}
 
-	if secretKey == nil {
-		return nil, errors.New("secret key not specified")
-	}
 	if databaseDSN == nil {
 		return nil, errors.New("database dsn not specified")
+	}
+
+	if secretKey == nil {
+		return nil, errors.New("secret key not specified")
 	}
 
 	return &appConfig{
 		ServerAddress:   *serverAddress,
 		BaseURL:         *baseURL,
 		FileStoragePath: *fileStoragePath,
-		SecretKey:       []byte(*secretKey),
 		DatabaseDSN:     *databaseDSN,
+		SecretKey:       []byte(*secretKey),
 	}, nil
 }
 
@@ -74,6 +75,12 @@ func getFileStoragePath() *string {
 	return flag.String("f", path, "file storage path")
 }
 
+func getDatabaseDSN() *string {
+	databaseDSN := os.Getenv("DATABASE_DSN")
+
+	return flag.String("d", databaseDSN, "database")
+}
+
 func getSecretKey() *string {
 	url := os.Getenv("SECRET_KEY")
 	if url == "" {
@@ -81,10 +88,4 @@ func getSecretKey() *string {
 	}
 
 	return flag.String("s", url, "secret key")
-}
-
-func getDatabaseDSN() *string {
-	databaseDSN := os.Getenv("DATABASE_DSN")
-
-	return flag.String("d", databaseDSN, "database")
 }

@@ -10,7 +10,6 @@ import (
 	serviceURL "github.com/ChristinaFomenko/shortener/internal/app/service/urls"
 	"github.com/ChristinaFomenko/shortener/internal/handlers"
 	"github.com/ChristinaFomenko/shortener/internal/middlewares"
-	"github.com/caarlos0/env"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/jackc/pgx/v4/stdlib"
@@ -22,7 +21,6 @@ func main() {
 	// Config
 	cfg, err := configs.NewConfig()
 	if err != nil {
-		err = env.Parse(cfg)
 		log.Fatalf("failed to retrieve env variables, %v", err)
 	}
 
@@ -71,5 +69,5 @@ func main() {
 
 	address := cfg.ServerAddress
 	log.WithField("address", address).Info("server starts")
-	log.Fatal(http.ListenAndServe(address, router), nil)
+	log.Fatal(http.ListenAndServe(address, router))
 }

@@ -183,11 +183,6 @@ func (h *handler) FetchURLs(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) Ping(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	if success := h.pingService.Ping(r.Context()); !success {
 		http.Error(w, "ping database error", http.StatusInternalServerError)
 		return
