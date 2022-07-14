@@ -30,6 +30,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to create a storage %v", err)
 	}
+	defer func(repository repositoryURL.Repo) {
+		_ = repository.Close()
+	}(repository)
 
 	// Services
 	helper := generator.NewGenerator()
