@@ -58,7 +58,7 @@ func TestShortenHandler(t *testing.T) {
 			authMock := mock.NewMockauth(ctrl)
 			authMock.EXPECT().UserID(gomock.Any()).Return(defaultUserID)
 
-			httpHandler := New(serviceMock, authMock, nil)
+			httpHandler := New(serviceMock, authMock)
 
 			buffer := new(bytes.Buffer)
 			buffer.WriteString(tt.url)
@@ -126,7 +126,7 @@ func TestAPIJSONShorten_Success(t *testing.T) {
 			authMock := mock.NewMockauth(ctrl)
 			authMock.EXPECT().UserID(gomock.Any()).Return(defaultUserID)
 
-			httpHandler := New(serviceMock, authMock, nil)
+			httpHandler := New(serviceMock, authMock)
 
 			buffer := new(bytes.Buffer)
 			buffer.WriteString(tt.body)
@@ -196,7 +196,7 @@ func TestAPIJSONShorten_BadRequest(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			httpHandler := New(nil, nil, nil)
+			httpHandler := New(nil, nil)
 
 			buffer := new(bytes.Buffer)
 			buffer.WriteString(tt.body)
@@ -260,7 +260,7 @@ func TestExpandHandler_Success(t *testing.T) {
 			urlsSrvMock := mock.NewMockservice(ctrl)
 			urlsSrvMock.EXPECT().Expand(gomock.Any(), tt.urlID).Return(tt.url, tt.err)
 
-			httpHandler := New(urlsSrvMock, nil, nil)
+			httpHandler := New(urlsSrvMock, nil)
 
 			request := httptest.NewRequest(http.MethodGet, tt.request, nil)
 			rctx := chi.NewRouteContext()
@@ -337,7 +337,7 @@ func Test_handler_FetchURLs_Success(t *testing.T) {
 			authMock := mock.NewMockauth(ctrl)
 			authMock.EXPECT().UserID(gomock.Any()).Return(defaultUserID)
 
-			httpHandler := New(serviceMock, authMock, nil)
+			httpHandler := New(serviceMock, authMock)
 
 			request := httptest.NewRequest(http.MethodGet, tt.request, nil)
 
@@ -361,7 +361,7 @@ func Test_handler_FetchURLs_Success(t *testing.T) {
 	}
 }
 
-func TestGetUrlsHandler_Ping(t *testing.T) {
+func Test_handler_Ping(t *testing.T) {
 	type want struct {
 		statusCode int
 	}
@@ -395,10 +395,10 @@ func TestGetUrlsHandler_Ping(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			pingMock := mock.NewMockpingService(ctrl)
-			pingMock.EXPECT().Ping(ctx).Return(tt.success)
+			serviceMock := mock.NewMockservice(ctrl)
+			serviceMock.EXPECT().Ping(ctx).Return(tt.success)
 
-			httpHandler := New(nil, nil, pingMock)
+			httpHandler := New(serviceMock, nil)
 
 			request := httptest.NewRequest(http.MethodGet, tt.request, nil)
 
@@ -415,31 +415,31 @@ func TestGetUrlsHandler_Ping(t *testing.T) {
 	}
 }
 
-func Test_handler_ShortenBatch(t *testing.T) {
-	type fields struct {
-		service     service
-		auth        auth
-		pingService pingService
-	}
-	type args struct {
-		w http.ResponseWriter
-		r *http.Request
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := &handler{
-				service:     tt.fields.service,
-				auth:        tt.fields.auth,
-				pingService: tt.fields.pingService,
-			}
-			h.ShortenBatch(tt.args.w, tt.args.r)
-		})
-	}
-}
+//func Test_handler_ShortenBatch(t *testing.T) {
+//	type fields struct {
+//		service     service
+//		auth        auth
+//		pingService pingService
+//	}
+//	type args struct {
+//		w http.ResponseWriter
+//		r *http.Request
+//	}
+//	tests := []struct {
+//		name   string
+//		fields fields
+//		args   args
+//	}{
+//		// TODO: Add test cases.
+//	}
+//	for _, tt := range tests {
+//		t.Run(tt.name, func(t *testing.T) {
+//			h := &handler{
+//				service:     tt.fields.service,
+//				auth:        tt.fields.auth,
+//				pingService: tt.fields.pingService,
+//			}
+//			h.ShortenBatch(tt.args.w, tt.args.r)
+//		})
+//	}
+//}

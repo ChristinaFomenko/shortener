@@ -6,7 +6,6 @@ import (
 	"github.com/ChristinaFomenko/shortener/internal/app/hasher"
 	repositoryURL "github.com/ChristinaFomenko/shortener/internal/app/repository/urls"
 	authService "github.com/ChristinaFomenko/shortener/internal/app/service/auth"
-	pingService "github.com/ChristinaFomenko/shortener/internal/app/service/ping"
 	serviceURL "github.com/ChristinaFomenko/shortener/internal/app/service/urls"
 	"github.com/ChristinaFomenko/shortener/internal/handlers"
 	"github.com/ChristinaFomenko/shortener/internal/middlewares"
@@ -37,7 +36,7 @@ func main() {
 	hash := hasher.NewHasher(cfg.SecretKey)
 	service := serviceURL.NewService(repository, helper, cfg.BaseURL)
 	authSrvc := authService.NewService(helper, hash)
-	pingSrvc := pingService.NewService(repository)
+	//pingSrvc := pingService.NewService(repository)
 
 	// Route
 	router := chi.NewRouter()
@@ -58,12 +57,12 @@ func main() {
 	router.Use(auth.Auth)
 
 	//router.Route("/", func(r chi.Router) {
-	router.Post("/", handlers.New(service, auth, pingSrvc).Shorten)
-	router.Get("/{id}", handlers.New(service, auth, pingSrvc).Expand)
-	router.Post("/api/shorten", handlers.New(service, auth, pingSrvc).APIJSONShorten)
-	router.Get("/api/user/urls", handlers.New(service, auth, pingSrvc).FetchURLs)
-	router.Get("/ping", handlers.New(service, auth, pingSrvc).Ping)
-	router.Post("/api/shorten/batch", handlers.New(service, auth, pingSrvc).ShortenBatch)
+	router.Post("/", handlers.New(service, auth).Shorten)
+	router.Get("/{id}", handlers.New(service, auth).Expand)
+	router.Post("/api/shorten", handlers.New(service, auth).APIJSONShorten)
+	router.Get("/api/user/urls", handlers.New(service, auth).FetchURLs)
+	router.Get("/ping", handlers.New(service, auth).Ping)
+	router.Post("/api/shorten/batch", handlers.New(service, auth).ShortenBatch)
 	//})
 
 	address := cfg.ServerAddress

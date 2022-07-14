@@ -13,10 +13,6 @@ type gzipWriter struct {
 	Writer io.Writer
 }
 
-func (gw gzipWriter) Write(b []byte) (int, error) {
-	return gw.Writer.Write(b)
-}
-
 type compressor struct {
 	gz *gzip.Writer
 }
@@ -46,4 +42,8 @@ func (c *compressor) Compressing(next http.Handler) http.Handler {
 
 		next.ServeHTTP(gzipWriter{ResponseWriter: w, Writer: c.gz}, r)
 	})
+}
+
+func (gw gzipWriter) Write(b []byte) (int, error) {
+	return gw.Writer.Write(b)
 }
