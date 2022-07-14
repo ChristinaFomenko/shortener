@@ -7,8 +7,8 @@ import (
 )
 
 type appConfig struct {
-	ServerAddress   string `env:"SERVER_ADDRESS" envDefault:"localhost:8080"`
-	BaseURL         string `env:"BASE_URL" envDefault:"http://localhost:8080"`
+	ServerAddress   string
+	BaseURL         string
 	FileStoragePath string
 	DatabaseDSN     string
 	SecretKey       []byte
@@ -54,7 +54,7 @@ func NewConfig() (*appConfig, error) {
 func getServerAddress() *string {
 	address := os.Getenv("SERVER_ADDRESS")
 	if address == "" {
-		address = "localhost:8080"
+		address = ":8080"
 	}
 
 	return flag.String("a", address, "server address")

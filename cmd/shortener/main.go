@@ -15,7 +15,10 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"time"
 )
+
+const defaultHostName = "localhost"
 
 func main() {
 	// Config
@@ -67,7 +70,12 @@ func main() {
 	router.Post("/api/shorten/batch", handlers.New(service, auth, pingSrvc).ShortenBatch)
 	//})
 
+	server := http.Server{
+		Handler:      router,
+		Addr:         cfg.ServerAddress,
+		WriteTimeout: 30 * time.Second,
+	}
 	address := cfg.ServerAddress
 	log.WithField("address", address).Info("server starts")
-	log.Fatal(http.ListenAndServe(address, router))
+	log.Fatal(server.ListenAndServe())
 }
