@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-const timeout = time.Second * 30
+const timeout = time.Second * 3
 
 var (
 	ErrURLNotFound = errors.New("url not found")
@@ -113,7 +113,7 @@ func (r *pgRepo) FetchURLs(ctx context.Context, userID string) ([]models.UserURL
 }
 
 func (r *pgRepo) Ping(ctx context.Context) error {
-	ctx, cancel := context.WithTimeout(ctx, timeout)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	return r.db.PingContext(ctx)
