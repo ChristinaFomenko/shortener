@@ -65,20 +65,6 @@ func (mr *MockserviceMockRecorder) FetchURLs(ctx, userID interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchURLs", reflect.TypeOf((*Mockservice)(nil).FetchURLs), ctx, userID)
 }
 
-// Ping mocks base method.
-func (m *Mockservice) Ping(ctx context.Context) bool {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Ping", ctx)
-	ret0, _ := ret[0].(bool)
-	return ret0
-}
-
-// Ping indicates an expected call of Ping.
-func (mr *MockserviceMockRecorder) Ping(ctx interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Ping", reflect.TypeOf((*Mockservice)(nil).Ping), ctx)
-}
-
 // Shorten mocks base method.
 func (m *Mockservice) Shorten(ctx context.Context, url, userID string) (string, error) {
 	m.ctrl.T.Helper()
@@ -144,4 +130,41 @@ func (m *Mockauth) UserID(ctx context.Context) string {
 func (mr *MockauthMockRecorder) UserID(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserID", reflect.TypeOf((*Mockauth)(nil).UserID), ctx)
+}
+
+// MockpingService is a mock of pingService interface.
+type MockpingService struct {
+	ctrl     *gomock.Controller
+	recorder *MockpingServiceMockRecorder
+}
+
+// MockpingServiceMockRecorder is the mock recorder for MockpingService.
+type MockpingServiceMockRecorder struct {
+	mock *MockpingService
+}
+
+// NewMockpingService creates a new mock instance.
+func NewMockpingService(ctrl *gomock.Controller) *MockpingService {
+	mock := &MockpingService{ctrl: ctrl}
+	mock.recorder = &MockpingServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockpingService) EXPECT() *MockpingServiceMockRecorder {
+	return m.recorder
+}
+
+// Ping mocks base method.
+func (m *MockpingService) Ping(ctx context.Context) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Ping", ctx)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// Ping indicates an expected call of Ping.
+func (mr *MockpingServiceMockRecorder) Ping(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Ping", reflect.TypeOf((*MockpingService)(nil).Ping), ctx)
 }

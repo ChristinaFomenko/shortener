@@ -58,7 +58,7 @@ func TestShortenHandler(t *testing.T) {
 			authMock := mock.NewMockauth(ctrl)
 			authMock.EXPECT().UserID(gomock.Any()).Return(defaultUserID)
 
-			httpHandler := New(serviceMock, authMock)
+			httpHandler := New(serviceMock, authMock, nil)
 
 			buffer := new(bytes.Buffer)
 			buffer.WriteString(tt.url)
@@ -126,7 +126,7 @@ func TestAPIJSONShorten_Success(t *testing.T) {
 			authMock := mock.NewMockauth(ctrl)
 			authMock.EXPECT().UserID(gomock.Any()).Return(defaultUserID)
 
-			httpHandler := New(serviceMock, authMock)
+			httpHandler := New(serviceMock, authMock, nil)
 
 			buffer := new(bytes.Buffer)
 			buffer.WriteString(tt.body)
@@ -196,7 +196,7 @@ func TestAPIJSONShorten_BadRequest(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			httpHandler := New(nil, nil)
+			httpHandler := New(nil, nil, nil)
 
 			buffer := new(bytes.Buffer)
 			buffer.WriteString(tt.body)
@@ -260,7 +260,7 @@ func TestExpandHandler_Success(t *testing.T) {
 			urlsSrvMock := mock.NewMockservice(ctrl)
 			urlsSrvMock.EXPECT().Expand(gomock.Any(), tt.urlID).Return(tt.url, tt.err)
 
-			httpHandler := New(urlsSrvMock, nil)
+			httpHandler := New(urlsSrvMock, nil, nil)
 
 			request := httptest.NewRequest(http.MethodGet, tt.request, nil)
 			rctx := chi.NewRouteContext()
@@ -337,7 +337,7 @@ func Test_handler_FetchURLs_Success(t *testing.T) {
 			authMock := mock.NewMockauth(ctrl)
 			authMock.EXPECT().UserID(gomock.Any()).Return(defaultUserID)
 
-			httpHandler := New(serviceMock, authMock)
+			httpHandler := New(serviceMock, authMock, nil)
 
 			request := httptest.NewRequest(http.MethodGet, tt.request, nil)
 
@@ -395,10 +395,10 @@ func Test_handler_Ping(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			serviceMock := mock.NewMockservice(ctrl)
-			serviceMock.EXPECT().Ping(ctx).Return(tt.success)
+			pingMock := mock.NewMockpingService(ctrl)
+			pingMock.EXPECT().Ping(ctx).Return(tt.success)
 
-			httpHandler := New(serviceMock, nil)
+			httpHandler := New(nil, nil, pingMock)
 
 			request := httptest.NewRequest(http.MethodGet, tt.request, nil)
 

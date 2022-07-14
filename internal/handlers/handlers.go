@@ -25,27 +25,27 @@ type service interface {
 	Expand(ctx context.Context, id string) (string, error)
 	FetchURLs(ctx context.Context, userID string) ([]models.UserURL, error)
 	ShortenBatch(ctx context.Context, originalURLs []models.OriginalURL, userID string) ([]models.UserURL, error)
-	Ping(ctx context.Context) bool
 }
 
 type auth interface {
 	UserID(ctx context.Context) string
 }
 
-//type pingService interface {
-//	Ping(ctx context.Context) bool
-//}
-
-type handler struct {
-	service service
-	auth    auth
-	//pingService pingService
+type pingService interface {
+	Ping(ctx context.Context) bool
 }
 
-func New(service service, userAuth auth) *handler {
+type handler struct {
+	service     service
+	auth        auth
+	pingService pingService
+}
+
+func New(service service, userAuth auth, pingServ pingService) *handler {
 	return &handler{
-		service: service,
-		auth:    userAuth,
+		service:     service,
+		auth:        userAuth,
+		pingService: pingServ,
 	}
 }
 
@@ -183,7 +183,12 @@ func (h *handler) FetchURLs(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) Ping(w http.ResponseWriter, r *http.Request) {
-	if success := h.service.Ping(r.Context()); !success {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if success := h.pingService.Ping(r.Context()); !success {
 		http.Error(w, "ping database error", http.StatusInternalServerError)
 		return
 	}

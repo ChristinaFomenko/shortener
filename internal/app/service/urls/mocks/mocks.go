@@ -94,20 +94,6 @@ func (mr *MockurlRepositoryMockRecorder) Get(ctx, urlID interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockurlRepository)(nil).Get), ctx, urlID)
 }
 
-// Ping mocks base method.
-func (m *MockurlRepository) Ping(ctx context.Context) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Ping", ctx)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Ping indicates an expected call of Ping.
-func (mr *MockurlRepositoryMockRecorder) Ping(ctx interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Ping", reflect.TypeOf((*MockurlRepository)(nil).Ping), ctx)
-}
-
 // Mockgenerator is a mock of generator interface.
 type Mockgenerator struct {
 	ctrl     *gomock.Controller
