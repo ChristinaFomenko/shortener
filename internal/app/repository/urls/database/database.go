@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-const timeout = time.Second * 3
+const timeout = time.Second * 30
 
 var (
 	ErrURLNotFound = errors.New("url not found")

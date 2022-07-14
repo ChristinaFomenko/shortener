@@ -2,7 +2,7 @@ package ping
 
 import (
 	"context"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 //go:generate mockgen -source=ping.go -destination=mocks/mocks.go
@@ -24,7 +24,7 @@ func NewService(urlRepo urlRepo) *service {
 func (s *service) Ping(ctx context.Context) bool {
 	err := s.urlRepo.Ping(ctx)
 	if err != nil {
-		logrus.WithError(err).Error("ping database error")
+		log.WithError(err).Error("ping database error")
 		return false
 	}
 
