@@ -30,7 +30,6 @@ type pgRepo struct {
 }
 
 func NewRepo(dsn string) (*pgRepo, error) {
-	dsn = "postgres://christina:123@postgres:5432/praktikum?sslmode=disable"
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		return nil, err
