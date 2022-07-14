@@ -140,3 +140,37 @@ func Test_service_FetchURLs(t *testing.T) {
 		assert.Equal(t, tt.urls, act)
 	}
 }
+
+func Test_service_Ping(t *testing.T) {
+	tests := []struct {
+		name string
+		err  error
+		exp  bool
+	}{
+		{
+			name: "success",
+			err:  nil,
+			exp:  true,
+		},
+		{
+			name: "repo err",
+			err:  errors.New("test err"),
+			exp:  false,
+		},
+	}
+
+	ctx := context.Background()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	for _, tt := range tests {
+		repoMock := mocks.NewMockurlRepository(ctrl)
+		repoMock.EXPECT().Ping(ctx).Return(tt.err)
+
+		s := NewService(repoMock, nil, host)
+		act := s.Ping(ctx)
+
+		assert.Equal(t, tt.exp, act)
+	}
+}
