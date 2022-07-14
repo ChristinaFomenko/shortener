@@ -5,7 +5,7 @@ import log "github.com/sirupsen/logrus"
 const idLength = 8
 
 type generator interface {
-	Random(n int64) string
+	Letters(n int64) string
 }
 
 type hasher interface {
@@ -26,7 +26,7 @@ func NewService(generator generator, hasher hasher) *service {
 }
 
 func (s *service) SignUp() (string, string, error) {
-	userID := s.generator.Random(idLength)
+	userID := s.generator.Letters(idLength)
 	signedUserID, err := s.hasher.Sign(userID)
 	if err != nil {
 		log.WithError(err).WithField("userID", userID).Error("sign userID error")

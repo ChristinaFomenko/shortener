@@ -133,6 +133,10 @@ func (r *fileRepository) Ping(_ context.Context) error {
 	return nil
 }
 
+func (r *fileRepository) Close() error {
+	return nil
+}
+
 func (r *fileRepository) save() error {
 	file, err := os.OpenFile(r.filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {

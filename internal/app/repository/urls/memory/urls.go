@@ -75,6 +75,10 @@ func (r *repository) Ping(_ context.Context) error {
 	return nil
 }
 
+func (r *repository) Close() error {
+	return nil
+}
+
 func (r *repository) AddBatch(_ context.Context, urls []models.UserURL, userID string) error {
 	r.ma.Lock()
 	defer r.ma.Unlock()
