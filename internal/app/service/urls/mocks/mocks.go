@@ -36,18 +36,18 @@ func (m *MockurlRepository) EXPECT() *MockurlRepositoryMockRecorder {
 }
 
 // Add mocks base method.
-func (m *MockurlRepository) Add(ctx context.Context, urlID, userID, url string) (string, error) {
+func (m *MockurlRepository) Add(ctx context.Context, urlID, url, userID string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Add", ctx, urlID, userID, url)
+	ret := m.ctrl.Call(m, "Add", ctx, urlID, url, userID)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Add indicates an expected call of Add.
-func (mr *MockurlRepositoryMockRecorder) Add(ctx, urlID, userID, url interface{}) *gomock.Call {
+func (mr *MockurlRepositoryMockRecorder) Add(ctx, urlID, url, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockurlRepository)(nil).Add), ctx, urlID, userID, url)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockurlRepository)(nil).Add), ctx, urlID, url, userID)
 }
 
 // AddBatch mocks base method.

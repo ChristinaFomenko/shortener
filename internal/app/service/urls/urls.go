@@ -16,7 +16,7 @@ const idLength int64 = 5
 var ErrURLNotFound = errors.New("url not found error")
 
 type urlRepository interface {
-	Add(ctx context.Context, urlID, userID, url string) (string, error)
+	Add(ctx context.Context, urlID, url, userID string) (string, error)
 	Get(ctx context.Context, urlID string) (string, error)
 	FetchURLs(ctx context.Context, userID string) ([]models.UserURL, error)
 	AddBatch(ctx context.Context, urls []models.UserURL, userID string) error
@@ -42,11 +42,11 @@ func NewService(repository urlRepository, generator generator, host string) *ser
 
 func (s *service) Shorten(ctx context.Context, url, userID string) (string, error) {
 	urlID := s.generator.Letters(idLength)
-	url, err := s.repository.Add(ctx, urlID, userID, url)
+	url, err := s.repository.Add(ctx, urlID, url, userID)
 	if err != nil {
 		log.WithError(err).
-			WithField("urlID", urlID).
 			WithField("userID", userID).
+			WithField("id", urlID).
 			WithField("url", url).Error("add url error")
 		return "", err
 	}
