@@ -7,10 +7,10 @@ import (
 )
 
 type appConfig struct {
-	ServerAddress   string
-	BaseURL         string
-	FileStoragePath string
-	DatabaseDSN     string
+	ServerAddress   string `env:"SERVER_ADDRESS" envDefault:":8080"`
+	BaseURL         string `env:"BASE_URL" envDefault:"http://localhost:8080/"`
+	FileStoragePath string `env:"FILE_STORAGE_PATH" envDefault:"storage.dat"`
+	DatabaseDSN     string `env:"DATABASE_DSN" envDefault:"postgres://christina:123@postgres:5432/praktikum?sslmode=disable"`
 	SecretKey       []byte
 }
 
