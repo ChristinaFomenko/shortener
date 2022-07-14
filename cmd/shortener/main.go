@@ -15,10 +15,10 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 	log "github.com/sirupsen/logrus"
 	"net/http"
-	"time"
+	"os"
+	"os/signal"
+	"syscall"
 )
-
-const defaultHostName = "localhost"
 
 func main() {
 	// Config
@@ -71,10 +71,21 @@ func main() {
 	//})
 
 	server := http.Server{
-		Handler:      router,
-		Addr:         cfg.ServerAddress,
-		WriteTimeout: 30 * time.Second,
+		Handler: router,
+		Addr:    cfg.ServerAddress,
 	}
+	c := make(chan os.Signal, 1)
+	signal.Notify(c,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT)
+
+	go func() {
+		<-c
+		server.Close()
+	}()
+
 	address := cfg.ServerAddress
 	log.WithField("address", address).Info("server starts")
 	log.Fatal(server.ListenAndServe())
