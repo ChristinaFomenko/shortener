@@ -140,3 +140,99 @@ func Test_service_FetchURLs(t *testing.T) {
 		assert.Equal(t, tt.urls, act)
 	}
 }
+
+func Test_service_ShortenBatch(t *testing.T) {
+	tests := []struct {
+		name         string
+		originalURLs []models.OriginalURL
+		urls         []models.UserURL
+		err          error
+		exp          []models.UserURL
+	}{
+		{
+			name: "success",
+			originalURLs: []models.OriginalURL{
+				{
+					CorrelationID: "1",
+					URL:           "https://yandex.ru",
+				},
+				{
+					CorrelationID: "2",
+					URL:           "https://github.com",
+				},
+			},
+			urls: []models.UserURL{
+				{
+					CorrelationID: "1",
+					ShortURL:      "abcde",
+					OriginalURL:   "https://yandex.ru",
+				},
+				{
+					CorrelationID: "2",
+					ShortURL:      "qwerty",
+					OriginalURL:   "https://github.com",
+				},
+			},
+			exp: []models.UserURL{
+				{
+					CorrelationID: "1",
+					ShortURL:      "http://localhost:8080/abcde",
+					OriginalURL:   "https://yandex.ru",
+				},
+				{
+					CorrelationID: "2",
+					ShortURL:      "http://localhost:8080/qwerty",
+					OriginalURL:   "https://github.com",
+				},
+			},
+			err: nil,
+		},
+		{
+			name: "repo err",
+			originalURLs: []models.OriginalURL{
+				{
+					CorrelationID: "1",
+					URL:           "https://yandex.ru",
+				},
+				{
+					CorrelationID: "2",
+					URL:           "https://github.com",
+				},
+			},
+			urls: []models.UserURL{
+				{
+					CorrelationID: "1",
+					ShortURL:      "abcde",
+					OriginalURL:   "https://yandex.ru",
+				},
+				{
+					CorrelationID: "2",
+					ShortURL:      "qwerty",
+					OriginalURL:   "https://github.com",
+				},
+			},
+			err: errors.New("test err"),
+		},
+	}
+
+	ctx := context.Background()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	for _, tt := range tests {
+		repositoryMock := mocks.NewMockurlRepository(ctrl)
+		repositoryMock.EXPECT().AddBatch(ctx, tt.urls, defaultUserID).Return(tt.err)
+
+		generatorMock := mocks.NewMockgenerator(ctrl)
+		for _, url := range tt.urls {
+			generatorMock.EXPECT().Letters(idLength).Return(url.ShortURL)
+		}
+
+		s := NewService(repositoryMock, generatorMock, host)
+		act, err := s.ShortenBatch(ctx, tt.originalURLs, defaultUserID)
+
+		assert.Equal(t, tt.err, err)
+		assert.Equal(t, tt.exp, act)
+	}
+}

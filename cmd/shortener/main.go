@@ -10,22 +10,19 @@ import (
 	serviceURL "github.com/ChristinaFomenko/shortener/internal/app/service/urls"
 	"github.com/ChristinaFomenko/shortener/internal/handlers"
 	"github.com/ChristinaFomenko/shortener/internal/middlewares"
-	"github.com/caarlos0/env"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/jackc/pgx/v4/stdlib"
+	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
 	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
 func main() {
 	// Config
 	cfg, err := configs.NewConfig()
 	if err != nil {
-		err = env.Parse(cfg)
+		err = godotenv.Load(".env")
 		log.Fatalf("failed to retrieve env variables, %v", err)
 	}
 
@@ -34,9 +31,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to create a storage %v", err)
 	}
-	defer func(repository repositoryURL.Repo) {
-		_ = repository.Close()
-	}(repository)
+	//defer func(repository repositoryURL.Repo) {
+	//	_ = repository.Close()
+	//}(repository)
 
 	// Services
 	helper := generator.NewGenerator()
@@ -72,23 +69,7 @@ func main() {
 	router.Post("/api/shorten/batch", handlers.New(service, auth, pingSrvc).ShortenBatch)
 	//})
 
-	server := http.Server{
-		Handler: router,
-		Addr:    cfg.ServerAddress,
-	}
-	c := make(chan os.Signal, 1)
-	signal.Notify(c,
-		syscall.SIGHUP,
-		syscall.SIGINT,
-		syscall.SIGTERM,
-		syscall.SIGQUIT)
-
-	go func() {
-		<-c
-		server.Close()
-	}()
-
 	address := cfg.ServerAddress
 	log.WithField("address", address).Info("server starts")
-	log.Fatal(server.ListenAndServe())
+	log.Fatal(http.ListenAndServe(address, router))
 }
