@@ -76,7 +76,7 @@ func getFileStoragePath() *string {
 }
 
 func getDatabaseDSN() *string {
-	databaseDSN, _ := os.LookupEnv("DATABASE_DSN")
+	databaseDSN := os.Getenv("DATABASE_DSN")
 
 	return flag.String("d", databaseDSN, "database")
 }

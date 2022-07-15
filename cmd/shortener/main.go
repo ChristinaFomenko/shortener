@@ -13,7 +13,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/jackc/pgx/v4/stdlib"
-	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 )
@@ -22,7 +21,6 @@ func main() {
 	// Config
 	cfg, err := configs.NewConfig()
 	if err != nil {
-		err = godotenv.Load(".env")
 		log.Fatalf("failed to retrieve env variables, %v", err)
 	}
 
