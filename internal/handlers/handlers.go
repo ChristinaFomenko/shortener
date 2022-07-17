@@ -17,7 +17,8 @@ import (
 
 var (
 	ErrURLNotFound = errors.New("url not found error")
-	ErrURLConflict = errors.New("urls conflict")
+	//	ErrURLConflict  = errors.New("urls conflict")
+	ErrNotUniqueURL = errors.New("not unique url")
 )
 
 type service interface {
@@ -51,6 +52,7 @@ func New(service service, userAuth auth, pingServ pingService) *handler {
 
 // Shorten Cut URL
 func (h *handler) Shorten(w http.ResponseWriter, r *http.Request) {
+	var statusCode int
 	bytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Error(err)
@@ -62,18 +64,18 @@ func (h *handler) Shorten(w http.ResponseWriter, r *http.Request) {
 
 	url := string(bytes)
 	shortcut, err := h.service.Shorten(r.Context(), url, userID)
-	if err != nil {
-		if errors.Is(err, ErrURLConflict) {
-			http.Error(w, "url shortcut", http.StatusConflict)
-			return
-		}
-
+	if errors.Is(err, ErrNotUniqueURL) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if err != nil {
+		statusCode = http.StatusConflict
+	} else {
+		statusCode = http.StatusCreated
+	}
 
 	w.Header().Set("content-type", "text/plain; charset=utf-8")
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(statusCode)
 	_, err = w.Write([]byte(shortcut))
 	if err != nil {
 		log.WithError(err).WithField("shortcut", shortcut).Error("write response error")
@@ -104,6 +106,7 @@ func (h *handler) Expand(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
+	var statusCode int
 	b, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
@@ -126,13 +129,13 @@ func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
 
 	shortcut, err := h.service.Shorten(r.Context(), req.URL, userID)
 	if err != nil {
-		log.WithError(err).WithField("url", req.URL).Error("shorten url error")
-		http.Error(w, err.Error(), 400)
-		return
+		statusCode = http.StatusConflict
+	} else {
+		statusCode = http.StatusCreated
 	}
 
 	w.Header().Set("content-type", "application/json")
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(statusCode)
 
 	resp := ShortenReply{ShortenURLResult: shortcut}
 	marshal, err := json.Marshal(&resp)
