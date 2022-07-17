@@ -7,7 +7,6 @@ import (
 	"github.com/ChristinaFomenko/shortener/internal/app/models"
 	"github.com/asaskevich/govalidator"
 	"github.com/go-chi/chi/v5"
-	_ "github.com/jackc/pgx/v4/stdlib"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
@@ -130,6 +129,10 @@ func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
 
 	shortcut, err := h.service.Shorten(r.Context(), req.URL, userID)
 	if err != nil {
+		if !errors.Is(err, ErrNotUniqueURL) {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		statusCode = http.StatusConflict
 	} else {
 		statusCode = http.StatusCreated
