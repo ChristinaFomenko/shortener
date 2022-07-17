@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/ChristinaFomenko/shortener/internal/app/models"
-	_ "github.com/jackc/pgx/v4"
+	_ "github.com/lib/pq"
 	"time"
 )
 
