@@ -96,3 +96,8 @@ func (r *repository) AddBatch(_ context.Context, urls []models.UserURL, userID s
 
 	return nil
 }
+
+func (r *repository) GetOriginURL(ctx context.Context, originURL string) (models.UserURL, error) {
+	//TODO implement me
+	panic("implement me")
+}

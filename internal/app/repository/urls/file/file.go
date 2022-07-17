@@ -185,3 +185,8 @@ func unmarshal(data []byte) (map[string]map[string]string, error) {
 
 	return store, nil
 }
+
+func (r *fileRepository) GetOriginURL(ctx context.Context, originURL string) (models.UserURL, error) {
+	//TODO implement me
+	panic("implement me")
+}

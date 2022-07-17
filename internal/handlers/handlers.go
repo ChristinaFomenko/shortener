@@ -7,6 +7,8 @@ import (
 	"github.com/ChristinaFomenko/shortener/internal/app/models"
 	"github.com/asaskevich/govalidator"
 	"github.com/go-chi/chi/v5"
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgerrcode"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	log "github.com/sirupsen/logrus"
 	"io"
@@ -18,7 +20,7 @@ import (
 var (
 	ErrURLNotFound = errors.New("url not found error")
 	//	ErrURLConflict  = errors.New("urls conflict")
-	ErrNotUniqueURL = errors.New("not unique url")
+	//ErrNotUniqueURL = errors.New("not unique url")
 )
 
 type service interface {
@@ -26,6 +28,7 @@ type service interface {
 	Expand(ctx context.Context, id string) (string, error)
 	FetchURLs(ctx context.Context, userID string) ([]models.UserURL, error)
 	ShortenBatch(ctx context.Context, originalURLs []models.OriginalURL, userID string) ([]models.UserURL, error)
+	GetOriginURL(ctx context.Context, originURL string) (models.UserURL, error)
 }
 
 type auth interface {
@@ -52,7 +55,7 @@ func New(service service, userAuth auth, pingServ pingService) *handler {
 
 // Shorten Cut URL
 func (h *handler) Shorten(w http.ResponseWriter, r *http.Request) {
-	var statusCode int
+	//var statusCode int
 	bytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Error(err)
@@ -64,18 +67,35 @@ func (h *handler) Shorten(w http.ResponseWriter, r *http.Request) {
 
 	url := string(bytes)
 	shortcut, err := h.service.Shorten(r.Context(), url, userID)
-	if errors.Is(err, ErrNotUniqueURL) {
+	if err != nil {
+		var pge *pgconn.PgError
+		if errors.As(err, &pge) && pge.Code == pgerrcode.UniqueViolation {
+			createURL, err := h.service.GetOriginURL(r.Context(), url)
+			if err != nil {
+				log.WithError(err).WithField("create url", createURL).Error("response error unique violation")
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+			w.WriteHeader(http.StatusConflict)
+			w.Write([]byte(shortcut))
+			return
+		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if err != nil {
-		statusCode = http.StatusConflict
-	} else {
-		statusCode = http.StatusCreated
-	}
+	//if errors.Is(err, ErrNotUniqueURL) {
+	//	http.Error(w, err.Error(), http.StatusInternalServerError)
+	//	return
+	//}
+	//if err != nil {
+	//	statusCode = http.StatusConflict
+	//} else {
+	//	statusCode = http.StatusCreated
+	//}
 
 	w.Header().Set("content-type", "text/plain; charset=utf-8")
-	w.WriteHeader(statusCode)
+	w.WriteHeader(http.StatusCreated)
 	_, err = w.Write([]byte(shortcut))
 	if err != nil {
 		log.WithError(err).WithField("shortcut", shortcut).Error("write response error")
@@ -106,7 +126,7 @@ func (h *handler) Expand(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
-	var statusCode int
+	//var statusCode int
 	b, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
@@ -129,13 +149,30 @@ func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
 
 	shortcut, err := h.service.Shorten(r.Context(), req.URL, userID)
 	if err != nil {
-		statusCode = http.StatusConflict
-	} else {
-		statusCode = http.StatusCreated
+		var pge *pgconn.PgError
+		if errors.As(err, &pge) && pge.Code == pgerrcode.UniqueViolation {
+			createURL, err := h.service.GetOriginURL(r.Context(), req.URL)
+			if err != nil {
+				log.WithError(err).WithField("create url", createURL).Error("response error unique violation")
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+			w.WriteHeader(http.StatusConflict)
+			w.Write([]byte(shortcut))
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
+	//if err != nil {
+	//	statusCode = http.StatusConflict
+	//} else {
+	//	statusCode = http.StatusCreated
+	//}
 
 	w.Header().Set("content-type", "application/json")
-	w.WriteHeader(statusCode)
+	w.WriteHeader(http.StatusCreated)
 
 	resp := ShortenReply{ShortenURLResult: shortcut}
 	marshal, err := json.Marshal(&resp)

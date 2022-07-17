@@ -20,6 +20,7 @@ type urlRepository interface {
 	Get(ctx context.Context, urlID string) (string, error)
 	FetchURLs(ctx context.Context, userID string) ([]models.UserURL, error)
 	AddBatch(ctx context.Context, urls []models.UserURL, userID string) error
+	GetOriginURL(ctx context.Context, originURL string) (models.UserURL, error)
 }
 
 type generator interface {
@@ -112,4 +113,9 @@ func (s *service) ShortenBatch(ctx context.Context, originalURLs []models.Origin
 
 func (s *service) buildShortURL(id string) string {
 	return fmt.Sprintf("%s/%s", s.host, id)
+}
+
+func (s *service) GetOriginURL(ctx context.Context, originURL string) (models.UserURL, error) {
+	//TODO implement me
+	panic("implement me")
 }

@@ -94,6 +94,21 @@ func (mr *MockurlRepositoryMockRecorder) Get(ctx, urlID interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockurlRepository)(nil).Get), ctx, urlID)
 }
 
+// GetOriginURL mocks base method.
+func (m *MockurlRepository) GetOriginURL(ctx context.Context, originURL string) (models.UserURL, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOriginURL", ctx, originURL)
+	ret0, _ := ret[0].(models.UserURL)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOriginURL indicates an expected call of GetOriginURL.
+func (mr *MockurlRepositoryMockRecorder) GetOriginURL(ctx, originURL interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOriginURL", reflect.TypeOf((*MockurlRepository)(nil).GetOriginURL), ctx, originURL)
+}
+
 // Mockgenerator is a mock of generator interface.
 type Mockgenerator struct {
 	ctrl     *gomock.Controller
