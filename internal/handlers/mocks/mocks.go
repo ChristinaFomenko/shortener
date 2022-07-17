@@ -65,21 +65,6 @@ func (mr *MockserviceMockRecorder) FetchURLs(ctx, userID interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchURLs", reflect.TypeOf((*Mockservice)(nil).FetchURLs), ctx, userID)
 }
 
-// GetOriginURL mocks base method.
-func (m *Mockservice) GetOriginURL(ctx context.Context, originURL string) (models.UserURL, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetOriginURL", ctx, originURL)
-	ret0, _ := ret[0].(models.UserURL)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetOriginURL indicates an expected call of GetOriginURL.
-func (mr *MockserviceMockRecorder) GetOriginURL(ctx, originURL interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOriginURL", reflect.TypeOf((*Mockservice)(nil).GetOriginURL), ctx, originURL)
-}
-
 // Shorten mocks base method.
 func (m *Mockservice) Shorten(ctx context.Context, url, userID string) (string, error) {
 	m.ctrl.T.Helper()

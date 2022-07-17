@@ -150,8 +150,3 @@ func (r *pgRepo) AddBatch(ctx context.Context, urls []models.UserURL, userID str
 
 	return tx.Commit()
 }
-
-func (r *pgRepo) GetOriginURL(ctx context.Context, originURL string) (models.UserURL, error) {
-	//TODO implement me
-	panic("implement me")
-}
