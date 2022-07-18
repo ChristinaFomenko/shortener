@@ -5,20 +5,16 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/ChristinaFomenko/shortener/internal/app/models"
+	errs "github.com/ChristinaFomenko/shortener/pkg/errors"
 	"github.com/asaskevich/govalidator"
 	"github.com/go-chi/chi/v5"
+	_ "github.com/jackc/pgx/v4/stdlib"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 )
 
 //go:generate mockgen -source=handlers.go -destination=mocks/mocks.go
-
-var (
-	ErrURLNotFound = errors.New("url not found error")
-	//	ErrURLConflict  = errors.New("urls conflict")
-	ErrNotUniqueURL = errors.New("not unique url")
-)
 
 type service interface {
 	Shorten(ctx context.Context, url string, userID string) (string, error)
@@ -51,7 +47,6 @@ func New(service service, userAuth auth, pingServ pingService) *handler {
 
 // Shorten Cut URL
 func (h *handler) Shorten(w http.ResponseWriter, r *http.Request) {
-	var statusCode int
 	bytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Error(err)
@@ -62,16 +57,16 @@ func (h *handler) Shorten(w http.ResponseWriter, r *http.Request) {
 	userID := h.auth.UserID(r.Context())
 
 	url := string(bytes)
-	shortcut, err := h.service.Shorten(r.Context(), url, userID)
 
-	if errors.Is(err, ErrNotUniqueURL) {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	statusCode := http.StatusCreated
+
+	shortcut, err := h.service.Shorten(r.Context(), url, userID)
 	if err != nil {
+		if errors.Is(err, errs.ErrNotUniqueURL) {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		statusCode = http.StatusConflict
-	} else {
-		statusCode = http.StatusCreated
 	}
 
 	w.Header().Set("content-type", "text/plain; charset=utf-8")
@@ -93,7 +88,7 @@ func (h *handler) Expand(w http.ResponseWriter, r *http.Request) {
 
 	url, err := h.service.Expand(r.Context(), id)
 	if err != nil {
-		if errors.Is(err, ErrURLNotFound) {
+		if errors.Is(err, errs.ErrURLNotFound) {
 			http.Error(w, "url not found", http.StatusNoContent)
 			return
 		}
@@ -106,7 +101,6 @@ func (h *handler) Expand(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
-	var statusCode int
 	b, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
@@ -127,15 +121,15 @@ func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {
 
 	userID := h.auth.UserID(r.Context())
 
+	statusCode := http.StatusCreated
+
 	shortcut, err := h.service.Shorten(r.Context(), req.URL, userID)
 	if err != nil {
-		if !errors.Is(err, ErrNotUniqueURL) {
+		if !errors.Is(err, errs.ErrNotUniqueURL) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		statusCode = http.StatusConflict
-	} else {
-		statusCode = http.StatusCreated
 	}
 
 	w.Header().Set("content-type", "application/json")
@@ -209,6 +203,18 @@ func (h *handler) ShortenBatch(w http.ResponseWriter, r *http.Request) {
 	if err = json.Unmarshal(body, &req); err != nil {
 		http.Error(w, "request in not valid", http.StatusBadRequest)
 		return
+	}
+
+	if len(req) == 0 {
+		http.Error(w, "url list not specified", http.StatusBadRequest)
+		return
+	}
+
+	for idx := range req {
+		if ok, err := govalidator.ValidateStruct(req[idx]); err != nil || !ok {
+			http.Error(w, "element of url list not valid", http.StatusBadRequest)
+			return
+		}
 	}
 
 	userID := h.auth.UserID(r.Context())
