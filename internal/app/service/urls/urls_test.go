@@ -46,10 +46,10 @@ func Test_service_Shorten(t *testing.T) {
 
 	for _, tt := range tests {
 		generatorMock := mocks.NewMockgenerator(ctrl)
-		generatorMock.EXPECT().Letters(idLength).Return(tt.urlID)
+		generatorMock.EXPECT().Letters(idLength).Return(tt.urlID, nil)
 
 		repositoryMock := mocks.NewMockurlRepository(ctrl)
-		repositoryMock.EXPECT().Add(ctx, tt.urlID, tt.url, defaultUserID).Return(tt.url, tt.err)
+		repositoryMock.EXPECT().Add(ctx, tt.urlID, tt.url, defaultUserID).Return(tt.err)
 
 		s := NewService(repositoryMock, generatorMock, host)
 		act, err := s.Shorten(ctx, tt.url, defaultUserID)
@@ -226,7 +226,7 @@ func Test_service_ShortenBatch(t *testing.T) {
 
 		generatorMock := mocks.NewMockgenerator(ctrl)
 		for _, url := range tt.urls {
-			generatorMock.EXPECT().Letters(idLength).Return(url.ShortURL)
+			generatorMock.EXPECT().Letters(idLength).Return(url.ShortURL, nil)
 		}
 
 		s := NewService(repositoryMock, generatorMock, host)

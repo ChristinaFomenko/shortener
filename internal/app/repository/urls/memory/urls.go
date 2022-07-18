@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/ChristinaFomenko/shortener/internal/app/models"
+	errs "github.com/ChristinaFomenko/shortener/pkg/errors"
 	"sync"
 )
 
@@ -21,9 +22,13 @@ func NewRepo() *repository {
 }
 
 // Add URL
-func (r *repository) Add(_ context.Context, urlID, url, userID string) (string, error) {
+func (r *repository) Add(_ context.Context, urlID, url, userID string) error {
 	r.ma.Lock()
 	defer r.ma.Unlock()
+
+	if doubleURLID, exists := r.urlExist(url); exists {
+		return errs.NewNotUniqueURLErr(doubleURLID, url, nil)
+	}
 
 	userStore, ok := r.store[userID]
 	if !ok {
@@ -33,7 +38,7 @@ func (r *repository) Add(_ context.Context, urlID, url, userID string) (string, 
 	userStore[urlID] = url
 	r.store[userID] = userStore
 
-	return url, nil
+	return nil
 }
 
 // Get URL
@@ -95,4 +100,16 @@ func (r *repository) AddBatch(_ context.Context, urls []models.UserURL, userID s
 	r.store[userID] = userStore
 
 	return nil
+}
+
+func (r *repository) urlExist(url string) (string, bool) {
+	for _, userStore := range r.store {
+		for urlID, originalURL := range userStore {
+			if url == originalURL {
+				return urlID, true
+			}
+		}
+	}
+
+	return "", false
 }

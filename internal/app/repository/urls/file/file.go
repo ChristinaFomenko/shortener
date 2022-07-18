@@ -5,14 +5,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/gob"
-	"errors"
 	"fmt"
 	"github.com/ChristinaFomenko/shortener/internal/app/models"
+	errs "github.com/ChristinaFomenko/shortener/pkg/errors"
 	"os"
 	"sync"
 )
-
-var ErrURLNotFound = errors.New("url not found")
 
 type fileRepository struct {
 	store    map[string]map[string]string
@@ -58,9 +56,13 @@ func readLines(filePath string) (map[string]map[string]string, error) {
 }
 
 // Add URL
-func (r *fileRepository) Add(_ context.Context, urlID, url, userID string) (string, error) {
+func (r *fileRepository) Add(_ context.Context, urlID, url, userID string) error {
 	r.ma.Lock()
 	defer r.ma.Unlock()
+
+	if doubleURLID, exists := r.urlExist(url); exists {
+		return errs.NewNotUniqueURLErr(doubleURLID, url, nil)
+	}
 
 	userStore, ok := r.store[userID]
 	if !ok {
@@ -70,10 +72,7 @@ func (r *fileRepository) Add(_ context.Context, urlID, url, userID string) (stri
 	userStore[urlID] = url
 	r.store[userID] = userStore
 
-	if err := r.save(); err != nil {
-		return "", err
-	}
-	return url, nil
+	return r.save()
 }
 
 // Get URL
@@ -87,7 +86,7 @@ func (r *fileRepository) Get(_ context.Context, urlID string) (string, error) {
 		}
 	}
 
-	return "", ErrURLNotFound
+	return "", errs.ErrURLNotFound
 }
 
 func (r *fileRepository) FetchURLs(_ context.Context, userID string) ([]models.UserURL, error) {
@@ -184,4 +183,16 @@ func unmarshal(data []byte) (map[string]map[string]string, error) {
 	}
 
 	return store, nil
+}
+
+func (r *fileRepository) urlExist(url string) (string, bool) {
+	for _, userStore := range r.store {
+		for urlID, originalURL := range userStore {
+			if url == originalURL {
+				return urlID, true
+			}
+		}
+	}
+
+	return "", false
 }

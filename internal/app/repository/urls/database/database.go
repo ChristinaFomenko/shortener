@@ -5,16 +5,13 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/ChristinaFomenko/shortener/internal/app/models"
-	_ "github.com/lib/pq"
+	errs "github.com/ChristinaFomenko/shortener/pkg/errors"
+	"github.com/jackc/pgerrcode"
+	"github.com/lib/pq"
 	"time"
 )
 
 const timeout = time.Second * 3
-
-var (
-	ErrURLNotFound = errors.New("url not found")
-	ErrURLConflict = errors.New("urls conflict")
-)
 
 type database interface {
 	PingContext(ctx context.Context) error
@@ -50,29 +47,30 @@ func NewRepo(dsn string) (*pgRepo, error) {
 	}, nil
 }
 
-func (r *pgRepo) Add(ctx context.Context, urlID, url, userID string) (string, error) {
+func (r *pgRepo) Add(ctx context.Context, urlID, url, userID string) error {
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	var resultURL sql.NullString
-	err := r.db.QueryRowContext(
-		ctx, `insert into urls(id,url,user_id) values ($1,$2,$3) on conflict do nothing returning url;`,
+	_, err := r.db.ExecContext(ctx, `insert into urls(id,url,user_id) values ($1,$2,$3)`,
 		urlID,
 		url,
-		&userID).Scan(&resultURL)
+		&userID)
 	if err != nil {
-		return "", err
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) && pqErr.Code == pgerrcode.UniqueViolation {
+			err = r.db.QueryRowContext(ctx, "select id from urls where url=$1", url).Scan(&urlID)
+			if err != nil {
+				return err
+			}
+			err = errs.NewNotUniqueURLErr(urlID, url, err)
+			return err
+		}
+
+		return err
 	}
 
-	if !resultURL.Valid {
-		return "", ErrURLNotFound
-	}
+	return nil
 
-	if url != resultURL.String {
-		return resultURL.String, ErrURLConflict
-	}
-
-	return resultURL.String, nil
 }
 
 func (r *pgRepo) Get(ctx context.Context, urlID string) (string, error) {
@@ -85,7 +83,7 @@ func (r *pgRepo) Get(ctx context.Context, urlID string) (string, error) {
 		return url.String, nil
 	}
 
-	return "", ErrURLNotFound
+	return "", errs.ErrURLNotFound
 }
 
 func (r *pgRepo) FetchURLs(ctx context.Context, userID string) ([]models.UserURL, error) {

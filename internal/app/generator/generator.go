@@ -1,6 +1,8 @@
 package generator
 
 import (
+	crypto "crypto/rand"
+	"fmt"
 	math "math/rand"
 	"time"
 )
@@ -17,11 +19,15 @@ func NewGenerator() *generator {
 	return &generator{}
 }
 
-func (g *generator) Letters(n int64) string {
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = letterBytes[math.Int63()%int64(len(letterBytes))]
+func (g *generator) Letters(n int64) (string, error) {
+	bytes := make([]byte, n)
+	if _, err := crypto.Read(bytes); err != nil {
+		return "", fmt.Errorf("random string generation error: %w", err)
 	}
 
-	return string(b)
+	for i, b := range bytes {
+		bytes[i] = letterBytes[b%byte(len(letterBytes))]
+	}
+
+	return string(bytes), nil
 }

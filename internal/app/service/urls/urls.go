@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ChristinaFomenko/shortener/internal/app/models"
+	errs "github.com/ChristinaFomenko/shortener/pkg/errors"
 	_ "github.com/jackc/pgx/v4"
 	log "github.com/sirupsen/logrus"
 )
@@ -13,17 +14,15 @@ import (
 
 const idLength int64 = 5
 
-var ErrURLNotFound = errors.New("url not found error")
-
 type urlRepository interface {
-	Add(ctx context.Context, urlID, url, userID string) (string, error)
+	Add(ctx context.Context, urlID, url, userID string) error
 	Get(ctx context.Context, urlID string) (string, error)
 	FetchURLs(ctx context.Context, userID string) ([]models.UserURL, error)
 	AddBatch(ctx context.Context, urls []models.UserURL, userID string) error
 }
 
 type generator interface {
-	Letters(n int64) string
+	Letters(n int64) (string, error)
 }
 
 type service struct {
@@ -41,14 +40,27 @@ func NewService(repository urlRepository, generator generator, host string) *ser
 }
 
 func (s *service) Shorten(ctx context.Context, url, userID string) (string, error) {
-	urlID := s.generator.Letters(idLength)
-	url, err := s.repository.Add(ctx, urlID, url, userID)
+	urlID, err := s.generator.Letters(idLength)
 	if err != nil {
 		log.WithError(err).
 			WithField("userID", userID).
-			WithField("id", urlID).
 			WithField("url", url).Error("add url error")
 		return "", err
+	}
+
+	if err = s.repository.Add(ctx, urlID, url, userID); err != nil {
+		var uniqueErr *errs.NotUniqueURLErr
+		if errors.As(err, &uniqueErr) {
+			return s.buildShortURL(uniqueErr.URLID), errs.ErrNotUniqueURL
+		}
+
+		log.WithError(err).
+			WithField("userID", userID).
+			WithField("urlID", urlID).
+			WithField("url", url).
+			Error("add url error")
+		return "", err
+
 	}
 
 	return s.buildShortURL(urlID), nil
@@ -59,8 +71,8 @@ func (s *service) Shorten(ctx context.Context, url, userID string) (string, erro
 func (s *service) Expand(ctx context.Context, urlID string) (string, error) {
 	url, err := s.repository.Get(ctx, urlID)
 	if err != nil {
-		if errors.Is(err, ErrURLNotFound) {
-			return "", ErrURLNotFound
+		if errors.Is(err, errs.ErrURLNotFound) {
+			return "", errs.ErrURLNotFound
 		}
 		log.WithError(err).WithField("urlID", urlID).Error("get url error")
 		return "", err
@@ -86,9 +98,17 @@ func (s *service) FetchURLs(ctx context.Context, userID string) ([]models.UserUR
 func (s *service) ShortenBatch(ctx context.Context, originalURLs []models.OriginalURL, userID string) ([]models.UserURL, error) {
 	urls := make([]models.UserURL, len(originalURLs))
 	for idx := range urls {
+		urlID, err := s.generator.Letters(idLength)
+		if err != nil {
+			log.WithError(err).
+				WithField("userID", userID).
+				WithField("originalURLs", originalURLs).
+				Error("generate urlID error")
+			return nil, err
+		}
 		urls[idx] = models.UserURL{
 			CorrelationID: originalURLs[idx].CorrelationID,
-			ShortURL:      s.generator.Letters(idLength),
+			ShortURL:      urlID,
 			OriginalURL:   originalURLs[idx].URL,
 		}
 	}
