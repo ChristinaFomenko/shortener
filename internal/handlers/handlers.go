@@ -62,7 +62,7 @@ func (h *handler) Shorten(w http.ResponseWriter, r *http.Request) {
 
 	shortcut, err := h.service.Shorten(r.Context(), url, userID)
 	if err != nil {
-		if errors.Is(err, errs.ErrNotUniqueURL) {
+		if !errors.Is(err, errs.ErrNotUniqueURL) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
