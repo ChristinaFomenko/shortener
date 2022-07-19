@@ -2,13 +2,10 @@ package memory
 
 import (
 	"context"
-	"errors"
 	"github.com/ChristinaFomenko/shortener/internal/app/models"
 	errs "github.com/ChristinaFomenko/shortener/pkg/errors"
 	"sync"
 )
-
-var ErrURLNotFound = errors.New("url not found")
 
 type repository struct {
 	store map[string]map[string]string
@@ -52,7 +49,7 @@ func (r *repository) Get(_ context.Context, urlID string) (string, error) {
 		}
 	}
 
-	return "", ErrURLNotFound
+	return "", errs.ErrURLNotFound
 }
 
 func (r *repository) FetchURLs(_ context.Context, userID string) ([]models.UserURL, error) {

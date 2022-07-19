@@ -91,8 +91,8 @@ func (r *pgRepo) FetchURLs(ctx context.Context, userID string) ([]models.UserURL
 	defer cancel()
 
 	res := make([]models.UserURL, 0)
-	rows, _ := r.db.QueryContext(ctx, `select id, url from urls where user_id=$1 and deleted_at is null;`, userID)
-	err := rows.Err()
+	rows, err := r.db.QueryContext(ctx, `select id, url from urls where user_id=$1 and deleted_at is null;`, userID)
+	err = rows.Err()
 	if err != nil {
 		return nil, err
 	}

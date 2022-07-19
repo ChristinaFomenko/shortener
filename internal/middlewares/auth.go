@@ -56,9 +56,6 @@ func (a *authenticator) Auth(next http.Handler) http.Handler {
 	})
 }
 
-func (a *authenticator) signUp() {
-}
-
 func (a *authenticator) setUserToken(w http.ResponseWriter, userID string) {
 	cookie := http.Cookie{
 		Name:  authCookieName,
