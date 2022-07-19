@@ -1,71 +1,111 @@
 package file
 
 import (
+	"context"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"os"
 	"testing"
 )
 
-const filePath = "storage.dat"
+const (
+	filePath      = "storage.dat"
+	defaultUserID = "user"
+)
 
 func TestFileRepo_Add(t *testing.T) {
+	ctx := context.Background()
+
 	repo, err := NewRepo("storage.dat")
-	if err != nil {
-		return
-	}
+	require.NoError(t, err)
 
-	err = repo.Add("hello", "world")
-	if err != nil {
-		return
-	}
+	defer func() {
+		_ = os.Remove(filePath)
+	}()
 
-	err = os.Remove(filePath)
-	if err != nil {
-		return
-	}
+	err = repo.Add(ctx, "qwe", "yandex.ru", defaultUserID)
+	require.NoError(t, err)
 }
 
 func TestFileRepo_Get(t *testing.T) {
+	ctx := context.Background()
+
 	repo, err := NewRepo(filePath)
-	if err != nil {
-		return
-	}
+	require.NoError(t, err)
 
-	err = repo.Add("hi", "Go")
-	if err != nil {
-		return
-	}
+	defer func() {
+		_ = os.Remove(filePath)
+	}()
 
-	err = repo.Add("hi", "Chris")
-	if err != nil {
-		return
-	}
+	err = repo.Add(ctx, "abc", "yandex.ru", defaultUserID)
+	require.NoError(t, err)
 
-	err = repo.Add("good", "morning")
-	if err != nil {
-		return
-	}
+	act, err := repo.Get(ctx, "abc")
 
-	err = repo.Add("good", "morning")
-	if err != nil {
-		return
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, "yandex.ru", act)
+}
 
-	repo, err = NewRepo("storage.dat")
-	if err != nil {
-		return
-	}
+func TestFileRepo_FetchURls_Success(t *testing.T) {
+	ctx := context.Background()
 
-	act, err := repo.Get("good")
-	if err != nil {
-		return
-	}
+	repo, err := NewRepo(filePath)
+	require.NoError(t, err)
 
-	if act != "morning" {
-		t.Error(act)
-	}
+	defer func() {
+		_ = os.Remove(filePath)
+	}()
 
-	err = os.Remove(filePath)
-	if err != nil {
-		return
-	}
+	err = repo.Add(ctx, "qwerty", "yandex.ru", defaultUserID)
+	require.NoError(t, err)
+
+	err = repo.Add(ctx, "ytrewq", "avito.ru", defaultUserID)
+	require.NoError(t, err)
+
+	repo, err = NewRepo(filePath)
+	require.NoError(t, err)
+
+	act, err := repo.FetchURLs(ctx, defaultUserID)
+	require.NoError(t, err)
+
+	assert.Len(t, act, 2)
+}
+
+func TestFileRepo_FetchURls_NotFound(t *testing.T) {
+	ctx := context.Background()
+
+	repo, err := NewRepo(filePath)
+	require.NoError(t, err)
+
+	defer func() {
+		_ = os.Remove(filePath)
+	}()
+
+	err = repo.Add(ctx, "qwerty", "avito.ru", defaultUserID)
+	require.NoError(t, err)
+
+	err = repo.Add(ctx, "ytrewq", "yandex.ru", defaultUserID)
+	require.NoError(t, err)
+
+	repo, err = NewRepo(filePath)
+	require.NoError(t, err)
+
+	act, err := repo.FetchURLs(ctx, "fake")
+	require.NoError(t, err)
+
+	assert.Len(t, act, 0)
+}
+
+func TestFileRepo_Ping(t *testing.T) {
+	ctx := context.Background()
+
+	repo, err := NewRepo(filePath)
+	require.NoError(t, err)
+
+	defer func() {
+		_ = os.Remove(filePath)
+	}()
+
+	err = repo.Ping(ctx)
+	assert.NoError(t, err)
 }

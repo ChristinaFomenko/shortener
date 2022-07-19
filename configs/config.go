@@ -7,15 +7,19 @@ import (
 )
 
 type appConfig struct {
-	ServerAddress   string `env:"SERVER_ADDRESS"`
-	BaseURL         string `env:"BASE_URL"`
-	FileStoragePath string `env:"FILE_STORAGE_PATH"`
+	ServerAddress   string `env:"SERVER_ADDRESS" envDefault:":8080"`
+	BaseURL         string `env:"BASE_URL" envDefault:"http://localhost:8080/"`
+	FileStoragePath string `env:"FILE_STORAGE_PATH" envDefault:"storage.dat"`
+	DatabaseDSN     string `env:"DATABASE_DSN"`
+	SecretKey       []byte
 }
 
 func NewConfig() (*appConfig, error) {
 	serverAddress := getServerAddress()
 	baseURL := getBaseURL()
 	fileStoragePath := getFileStoragePath()
+	secretKey := getSecretKey()
+	databaseDSN := getDatabaseDSN()
 	flag.Parse()
 
 	if serverAddress == nil {
@@ -30,10 +34,20 @@ func NewConfig() (*appConfig, error) {
 		return nil, errors.New("file storage path not specified")
 	}
 
+	if databaseDSN == nil {
+		return nil, errors.New("database dsn not specified")
+	}
+
+	if secretKey == nil {
+		return nil, errors.New("secret key not specified")
+	}
+
 	return &appConfig{
 		ServerAddress:   *serverAddress,
 		BaseURL:         *baseURL,
 		FileStoragePath: *fileStoragePath,
+		DatabaseDSN:     *databaseDSN,
+		SecretKey:       []byte(*secretKey),
 	}, nil
 }
 
@@ -59,4 +73,19 @@ func getFileStoragePath() *string {
 	path := os.Getenv("FILE_STORAGE_PATH")
 
 	return flag.String("f", path, "file storage path")
+}
+
+func getDatabaseDSN() *string {
+	databaseDSN := os.Getenv("DATABASE_DSN")
+
+	return flag.String("d", databaseDSN, "database")
+}
+
+func getSecretKey() *string {
+	url := os.Getenv("SECRET_KEY")
+	if url == "" {
+		url = "my-secret-key"
+	}
+
+	return flag.String("s", url, "secret key")
 }

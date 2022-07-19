@@ -1,29 +1,33 @@
 package generator
 
 import (
-	"math/rand"
+	crypto "crypto/rand"
+	"fmt"
+	math "math/rand"
 	"time"
 )
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-type generator struct {
+func init() {
+	math.Seed(time.Now().Unix())
 }
+
+type generator struct{}
 
 func NewGenerator() *generator {
 	return &generator{}
 }
 
-func (g *generator) GenerateID() string {
-	return generate(10)
-
-}
-
-func generate(n int) string {
-	rand.Seed(time.Now().UnixNano())
+func (g *generator) Letters(n int64) (string, error) {
 	bytes := make([]byte, n)
-	for i := range bytes {
-		bytes[i] = letterBytes[rand.Intn(len(letterBytes))]
+	if _, err := crypto.Read(bytes); err != nil {
+		return "", fmt.Errorf("random string generation error: %w", err)
 	}
-	return string(bytes)
+
+	for i, b := range bytes {
+		bytes[i] = letterBytes[b%byte(len(letterBytes))]
+	}
+
+	return string(bytes), nil
 }

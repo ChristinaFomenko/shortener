@@ -5,8 +5,10 @@
 package mock_urls
 
 import (
+	context "context"
 	reflect "reflect"
 
+	models "github.com/ChristinaFomenko/shortener/internal/app/models"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -34,32 +36,61 @@ func (m *MockurlRepository) EXPECT() *MockurlRepositoryMockRecorder {
 }
 
 // Add mocks base method.
-func (m *MockurlRepository) Add(id, url string) error {
+func (m *MockurlRepository) Add(ctx context.Context, urlID, url, userID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Add", id, url)
+	ret := m.ctrl.Call(m, "Add", ctx, urlID, url, userID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Add indicates an expected call of Add.
-func (mr *MockurlRepositoryMockRecorder) Add(id, url interface{}) *gomock.Call {
+func (mr *MockurlRepositoryMockRecorder) Add(ctx, urlID, url, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockurlRepository)(nil).Add), id, url)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockurlRepository)(nil).Add), ctx, urlID, url, userID)
+}
+
+// AddBatch mocks base method.
+func (m *MockurlRepository) AddBatch(ctx context.Context, urls []models.UserURL, userID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddBatch", ctx, urls, userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddBatch indicates an expected call of AddBatch.
+func (mr *MockurlRepositoryMockRecorder) AddBatch(ctx, urls, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddBatch", reflect.TypeOf((*MockurlRepository)(nil).AddBatch), ctx, urls, userID)
+}
+
+// FetchURLs mocks base method.
+func (m *MockurlRepository) FetchURLs(ctx context.Context, userID string) ([]models.UserURL, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FetchURLs", ctx, userID)
+	ret0, _ := ret[0].([]models.UserURL)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FetchURLs indicates an expected call of FetchURLs.
+func (mr *MockurlRepositoryMockRecorder) FetchURLs(ctx, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchURLs", reflect.TypeOf((*MockurlRepository)(nil).FetchURLs), ctx, userID)
 }
 
 // Get mocks base method.
-func (m *MockurlRepository) Get(id string) (string, error) {
+func (m *MockurlRepository) Get(ctx context.Context, urlID string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", id)
+	ret := m.ctrl.Call(m, "Get", ctx, urlID)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockurlRepositoryMockRecorder) Get(id interface{}) *gomock.Call {
+func (mr *MockurlRepositoryMockRecorder) Get(ctx, urlID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockurlRepository)(nil).Get), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockurlRepository)(nil).Get), ctx, urlID)
 }
 
 // Mockgenerator is a mock of generator interface.
@@ -85,16 +116,17 @@ func (m *Mockgenerator) EXPECT() *MockgeneratorMockRecorder {
 	return m.recorder
 }
 
-// GenerateID mocks base method.
-func (m *Mockgenerator) GenerateID() string {
+// Letters mocks base method.
+func (m *Mockgenerator) Letters(n int64) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GenerateID")
+	ret := m.ctrl.Call(m, "Letters", n)
 	ret0, _ := ret[0].(string)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// GenerateID indicates an expected call of GenerateID.
-func (mr *MockgeneratorMockRecorder) GenerateID() *gomock.Call {
+// Letters indicates an expected call of Letters.
+func (mr *MockgeneratorMockRecorder) Letters(n interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateID", reflect.TypeOf((*Mockgenerator)(nil).GenerateID))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Letters", reflect.TypeOf((*Mockgenerator)(nil).Letters), n)
 }
