@@ -274,23 +274,9 @@ func (h *handler) DeleteUserURLs(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		pool <- func() {
-			deleteURLs(userID, urls)
+			_ = h.service.DeleteUserURLs(r.Context(), userID, urls)
 		}
 	}()
 
 	w.WriteHeader(http.StatusAccepted)
-}
-
-func deleteURLs(userID string, urls []string) {
-	batch := make([]models.UserURL, len(urls))
-	for i, v := range urls {
-		batch[i] = models.UserURL{
-			CorrelationID: v,
-			ShortURL:      userID,
-		}
-	}
-
-	if err := service.DeleteUserURLs; err != nil {
-		return
-	}
 }
