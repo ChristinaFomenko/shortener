@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/ChristinaFomenko/shortener/internal/app/models"
 	errs "github.com/ChristinaFomenko/shortener/pkg/errors"
+	work "github.com/ChristinaFomenko/shortener/pkg/workers"
 	"github.com/jackc/pgerrcode"
 	"github.com/lib/pq"
 	"time"
@@ -23,12 +24,83 @@ type database interface {
 }
 
 type pgRepo struct {
-	db database
+	db      database
+	workers int
 }
 
 func (r *pgRepo) DeleteUserURLs(ctx context.Context, userID string, urls []string) error {
-	//TODO implement me
-	panic("implement me")
+	inputCh := make(chan interface{})
+
+	// генерируем входные значения и кладём в inputCh
+	go func() {
+		for _, id := range urls {
+			inputCh <- id
+		}
+		close(inputCh)
+	}()
+
+	workers := r.workers
+	if len(urls) < workers {
+		workers = len(urls)
+	}
+
+	fanOutChs := work.FanOut(inputCh, workers)
+	workerChs := make([]chan interface{}, 0, workers)
+	for _, fanOutCh := range fanOutChs {
+		workerCh := make(chan interface{})
+
+		func(input, out chan interface{}) {
+			go func() {
+				for urlID := range input {
+					exists, err := r.bindingExists(ctx, urlID.(string), userID)
+					if err != nil {
+						return
+					}
+					if exists {
+						out <- urlID
+					}
+				}
+
+				close(out)
+			}()
+		}(fanOutCh, workerCh)
+
+		workerChs = append(workerChs, workerCh)
+	}
+
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	defer func(tx *sql.Tx) {
+		err = tx.Rollback()
+		if err != nil {
+			// log in prod
+		}
+	}(tx)
+
+	updateStmt, err := tx.PrepareContext(ctx, "UPDATE urls SET deleted = TRUE WHERE id = $1")
+	if err != nil {
+		return err
+	}
+	defer updateStmt.Close()
+
+	// здесь fanIn
+	for v := range work.FanIn(workerChs...) {
+		if _, err = updateStmt.ExecContext(ctx, v.(string)); err != nil {
+			if err = tx.Rollback(); err != nil {
+				return err
+			}
+			return err
+		}
+	}
+
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func NewRepo(dsn string) (*pgRepo, error) {
@@ -48,8 +120,20 @@ func NewRepo(dsn string) (*pgRepo, error) {
 	}
 
 	return &pgRepo{
-		db: db,
+		db:      db,
+		workers: 10,
 	}, nil
+}
+
+func (r *pgRepo) bindingExists(ctx context.Context, urlID, userID string) (bool, error) {
+	var count int64
+	row := r.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM urls "+
+		"WHERE user_id = $1 AND url = $2", userID, urlID)
+	err := row.Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, err
 }
 
 func (r *pgRepo) Add(ctx context.Context, urlID, url, userID string) error {
