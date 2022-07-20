@@ -6,7 +6,6 @@ import (
 	"errors"
 	"github.com/ChristinaFomenko/shortener/internal/app/models"
 	errs "github.com/ChristinaFomenko/shortener/pkg/errors"
-	work "github.com/ChristinaFomenko/shortener/pkg/workers"
 	"github.com/jackc/pgerrcode"
 	"github.com/lib/pq"
 	"time"
@@ -24,83 +23,7 @@ type database interface {
 }
 
 type pgRepo struct {
-	db      database
-	workers int
-}
-
-func (r *pgRepo) DeleteUserURLs(ctx context.Context, userID string, urls []string) error {
-	inputCh := make(chan interface{})
-
-	// генерируем входные значения и кладём в inputCh
-	go func() {
-		for _, id := range urls {
-			inputCh <- id
-		}
-		close(inputCh)
-	}()
-
-	workers := r.workers
-	if len(urls) < workers {
-		workers = len(urls)
-	}
-
-	fanOutChs := work.FanOut(inputCh, workers)
-	workerChs := make([]chan interface{}, 0, workers)
-	for _, fanOutCh := range fanOutChs {
-		workerCh := make(chan interface{})
-
-		func(input, out chan interface{}) {
-			go func() {
-				for urlID := range input {
-					exists, err := r.bindingExists(ctx, urlID.(string), userID)
-					if err != nil {
-						return
-					}
-					if exists {
-						out <- urlID
-					}
-				}
-
-				close(out)
-			}()
-		}(fanOutCh, workerCh)
-
-		workerChs = append(workerChs, workerCh)
-	}
-
-	tx, err := r.db.Begin()
-	if err != nil {
-		return err
-	}
-
-	defer func(tx *sql.Tx) {
-		err = tx.Rollback()
-		if err != nil {
-			// log in prod
-		}
-	}(tx)
-
-	updateStmt, err := tx.PrepareContext(ctx, "UPDATE urls SET deleted = TRUE WHERE id = $1")
-	if err != nil {
-		return err
-	}
-	defer updateStmt.Close()
-
-	// здесь fanIn
-	for v := range work.FanIn(workerChs...) {
-		if _, err = updateStmt.ExecContext(ctx, v.(string)); err != nil {
-			if err = tx.Rollback(); err != nil {
-				return err
-			}
-			return err
-		}
-	}
-
-	if err = tx.Commit(); err != nil {
-		return err
-	}
-
-	return nil
+	db database
 }
 
 func NewRepo(dsn string) (*pgRepo, error) {
@@ -120,8 +43,7 @@ func NewRepo(dsn string) (*pgRepo, error) {
 	}
 
 	return &pgRepo{
-		db:      db,
-		workers: 10,
+		db: db,
 	}, nil
 }
 
@@ -236,6 +158,33 @@ func (r *pgRepo) AddBatch(ctx context.Context, urls []models.UserURL, userID str
 		if _, err = stmt.ExecContext(ctx, urls[idx].ShortURL, urls[idx].OriginalURL, userID); err != nil {
 			return err
 		}
+	}
+
+	return tx.Commit()
+}
+
+func (r *pgRepo) DeleteUserURLs(ctx context.Context, userID string, urls []string) error {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	defer func(tx *sql.Tx) {
+		_ = tx.Rollback()
+	}(tx)
+
+	stmt, err := tx.PrepareContext(ctx, "UPDATE urls SET deleted = TRUE WHERE id = $1")
+	if err != nil {
+		return err
+	}
+
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
+
+	_, err = stmt.ExecContext(ctx, stmt, userID, urls)
+	if err != nil {
+		return err
 	}
 
 	return tx.Commit()
