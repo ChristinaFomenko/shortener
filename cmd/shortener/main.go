@@ -64,6 +64,7 @@ func main() {
 	router.Get("/api/user/urls", handlers.New(service, auth, pingSrvc).FetchURLs)
 	router.Get("/ping", handlers.New(service, auth, pingSrvc).Ping)
 	router.Post("/api/shorten/batch", handlers.New(service, auth, pingSrvc).ShortenBatch)
+	router.Delete("/api/user/urls", handlers.New(service, auth, pingSrvc).DeleteUserURLs)
 	//})
 
 	address := cfg.ServerAddress

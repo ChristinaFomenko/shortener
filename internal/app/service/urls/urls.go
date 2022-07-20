@@ -19,6 +19,7 @@ type urlRepository interface {
 	Get(ctx context.Context, urlID string) (string, error)
 	FetchURLs(ctx context.Context, userID string) ([]models.UserURL, error)
 	AddBatch(ctx context.Context, urls []models.UserURL, userID string) error
+	DeleteUserURLs(ctx context.Context, userID string, urls []string) error
 }
 
 type generator interface {
@@ -132,4 +133,25 @@ func (s *service) ShortenBatch(ctx context.Context, originalURLs []models.Origin
 
 func (s *service) buildShortURL(id string) string {
 	return fmt.Sprintf("%s/%s", s.host, id)
+}
+
+func (s *service) DeleteUserURLs(ctx context.Context, userID string, urls []string) error {
+	usr, err := s.repository.Get(ctx, userID)
+	if err != nil {
+		log.WithError(err).
+			WithField("userID", userID).
+			Error("get userID error")
+		return err
+	}
+
+	err = s.repository.DeleteUserURLs(ctx, usr, urls)
+	if err != nil {
+		log.WithError(err).
+			WithField("userID", usr).
+			WithField("urls", urls).
+			Error("delete user urls error")
+		return err
+	}
+
+	return nil
 }
