@@ -291,6 +291,6 @@ func deleteURLs(userID string, urls []string) {
 	}
 
 	if err := service.DeleteUserURLs; err != nil {
-		log.Error(err)
+		return
 	}
 }
