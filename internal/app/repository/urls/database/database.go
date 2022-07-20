@@ -47,6 +47,17 @@ func NewRepo(dsn string) (*pgRepo, error) {
 	}, nil
 }
 
+func (r *pgRepo) bindingExists(ctx context.Context, urlID, userID string) (bool, error) {
+	var count int64
+	row := r.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM urls "+
+		"WHERE user_id = $1 AND url = $2", userID, urlID)
+	err := row.Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, err
+}
+
 func (r *pgRepo) Add(ctx context.Context, urlID, url, userID string) error {
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
@@ -147,6 +158,33 @@ func (r *pgRepo) AddBatch(ctx context.Context, urls []models.UserURL, userID str
 		if _, err = stmt.ExecContext(ctx, urls[idx].ShortURL, urls[idx].OriginalURL, userID); err != nil {
 			return err
 		}
+	}
+
+	return tx.Commit()
+}
+
+func (r *pgRepo) DeleteUserURLs(ctx context.Context, userID string, urls []string) error {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	defer func(tx *sql.Tx) {
+		_ = tx.Rollback()
+	}(tx)
+
+	stmt, err := tx.PrepareContext(ctx, "UPDATE urls SET deleted = TRUE WHERE id = $1")
+	if err != nil {
+		return err
+	}
+
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
+
+	_, err = stmt.ExecContext(ctx, stmt, userID, urls)
+	if err != nil {
+		return err
 	}
 
 	return tx.Commit()

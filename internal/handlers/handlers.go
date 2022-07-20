@@ -11,6 +11,7 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 	log "github.com/sirupsen/logrus"
 	"io"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -21,6 +22,7 @@ type service interface {
 	Expand(ctx context.Context, id string) (string, error)
 	FetchURLs(ctx context.Context, userID string) ([]models.UserURL, error)
 	ShortenBatch(ctx context.Context, originalURLs []models.OriginalURL, userID string) ([]models.UserURL, error)
+	DeleteUserURLs(ctx context.Context, userID string, urls []string) error
 }
 
 type auth interface {
@@ -243,4 +245,38 @@ func (h *handler) ShortenBatch(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+func (h *handler) DeleteUserURLs(w http.ResponseWriter, r *http.Request) {
+	var poolSize int
+	pool := make(chan func(), poolSize)
+	for i := 0; i < poolSize; i++ {
+		go func() {
+			for f := range pool {
+				f()
+			}
+		}()
+	}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	userID := h.auth.UserID(r.Context())
+	var urls []string
+	err = json.Unmarshal(body, &urls)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	go func() {
+		pool <- func() {
+			_ = h.service.DeleteUserURLs(r.Context(), userID, urls)
+		}
+	}()
+
+	w.WriteHeader(http.StatusAccepted)
 }
