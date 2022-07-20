@@ -19,7 +19,7 @@ import (
 
 type service interface {
 	Shorten(ctx context.Context, url string, userID string) (string, error)
-	Expand(ctx context.Context, id string) (models.UserURL, error)
+	Expand(ctx context.Context, id string) (string, error)
 	FetchURLs(ctx context.Context, userID string) ([]models.UserURL, error)
 	ShortenBatch(ctx context.Context, originalURLs []models.OriginalURL, userID string) ([]models.UserURL, error)
 	DeleteUserURLs(ctx context.Context, userID string, urls []string) error
@@ -91,26 +91,15 @@ func (h *handler) Expand(w http.ResponseWriter, r *http.Request) {
 	url, err := h.service.Expand(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, errs.ErrURLNotFound) {
-			http.Error(w, "url not found", http.StatusBadRequest)
+			http.Error(w, "url not found", http.StatusNoContent)
 			return
 		}
 
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if url.IsDeleted {
-		w.WriteHeader(http.StatusGone)
-		w.Write([]byte("Gone"))
-		return
-	}
 
-	if url.OriginalURL == "" {
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("Not found"))
-		return
-	}
-
-	w.Header().Set("Location", url.OriginalURL)
+	w.Header().Set("Location", url)
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 func (h *handler) APIJSONShorten(w http.ResponseWriter, r *http.Request) {

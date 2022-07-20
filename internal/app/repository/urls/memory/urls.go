@@ -39,25 +39,17 @@ func (r *repository) Add(_ context.Context, urlID, url, userID string) error {
 }
 
 // Get URL
-func (r *repository) Get(_ context.Context, urlID string) (models.UserURL, error) {
+func (r *repository) Get(_ context.Context, urlID string) (string, error) {
 	r.ma.RLock()
 	defer r.ma.RUnlock()
 
 	for _, userStore := range r.store {
-		if _, ok := userStore[urlID]; ok {
-			return models.UserURL{}, nil
+		if url, ok := userStore[urlID]; ok {
+			return url, nil
 		}
 	}
 
-	var deleted bool
-	if r.store[urlID][string(rune(1))] == "true" {
-		deleted = true
-	}
-
-	return models.UserURL{
-		OriginalURL: r.store[urlID][string(rune(0))],
-		IsDeleted:   deleted,
-	}, errs.ErrURLNotFound
+	return "", errs.ErrURLNotFound
 }
 
 func (r *repository) FetchURLs(_ context.Context, userID string) ([]models.UserURL, error) {

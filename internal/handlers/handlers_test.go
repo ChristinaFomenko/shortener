@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"github.com/ChristinaFomenko/shortener/internal/app/models"
+	"github.com/go-chi/chi/v5"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -217,73 +218,73 @@ func TestAPIJSONShorten_BadRequest(t *testing.T) {
 	}
 }
 
-//func TestExpandHandler_Success(t *testing.T) {
-//	type want struct {
-//		contentType string
-//		statusCode  int
-//		response    string
-//		location    string
-//	}
-//	tests := []struct {
-//		name     string
-//		request  string
-//		url      string
-//		urlID    string
-//		shortcut string
-//		err      error
-//		want     want
-//	}{
-//		{
-//			name:     "success",
-//			url:      "https://yandex.ru",
-//			urlID:    "abc",
-//			shortcut: "http://localhost:8080/abc",
-//			err:      nil,
-//			want: want{
-//				contentType: "",
-//				statusCode:  307,
-//				response:    "",
-//			},
-//			request: "/",
-//		},
-//	}
-//	for _, tt := range tests {
-//		t.Run(tt.name, func(t *testing.T) {
-//			ctrl := gomock.NewController(t)
-//			defer ctrl.Finish()
-//
-//			urlsSrvMock := mock.NewMockservice(ctrl)
-//			urlsSrvMock.EXPECT().Expand(gomock.Any(), tt.urlID).Return(tt.url, tt.err)
-//
-//			httpHandler := New(urlsSrvMock, nil, nil)
-//
-//			request := httptest.NewRequest(http.MethodGet, tt.request, nil)
-//			rctx := chi.NewRouteContext()
-//			rctx.URLParams.Add("id", tt.urlID)
-//
-//			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
-//
-//			w := httptest.NewRecorder()
-//			h := http.HandlerFunc(httpHandler.Expand)
-//
-//			h.ServeHTTP(w, request)
-//
-//			result := w.Result()
-//
-//			assert.Equal(t, tt.want.statusCode, result.StatusCode)
-//			assert.Equal(t, tt.want.contentType, result.Header.Get("Content-Type"))
-//
-//			userResult, err := ioutil.ReadAll(result.Body)
-//			require.NoError(t, err)
-//			err = result.Body.Close()
-//			require.NoError(t, err)
-//
-//			require.NoError(t, err)
-//
-//			assert.Equal(t, tt.want.response, string(userResult))
-//		})
-//	}
-//}
+func TestExpandHandler_Success(t *testing.T) {
+	type want struct {
+		contentType string
+		statusCode  int
+		response    string
+		location    string
+	}
+	tests := []struct {
+		name     string
+		request  string
+		url      string
+		urlID    string
+		shortcut string
+		err      error
+		want     want
+	}{
+		{
+			name:     "success",
+			url:      "https://yandex.ru",
+			urlID:    "abc",
+			shortcut: "http://localhost:8080/abc",
+			err:      nil,
+			want: want{
+				contentType: "",
+				statusCode:  307,
+				response:    "",
+			},
+			request: "/",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			urlsSrvMock := mock.NewMockservice(ctrl)
+			urlsSrvMock.EXPECT().Expand(gomock.Any(), tt.urlID).Return(tt.url, tt.err)
+
+			httpHandler := New(urlsSrvMock, nil, nil)
+
+			request := httptest.NewRequest(http.MethodGet, tt.request, nil)
+			rctx := chi.NewRouteContext()
+			rctx.URLParams.Add("id", tt.urlID)
+
+			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
+
+			w := httptest.NewRecorder()
+			h := http.HandlerFunc(httpHandler.Expand)
+
+			h.ServeHTTP(w, request)
+
+			result := w.Result()
+
+			assert.Equal(t, tt.want.statusCode, result.StatusCode)
+			assert.Equal(t, tt.want.contentType, result.Header.Get("Content-Type"))
+
+			userResult, err := ioutil.ReadAll(result.Body)
+			require.NoError(t, err)
+			err = result.Body.Close()
+			require.NoError(t, err)
+
+			require.NoError(t, err)
+
+			assert.Equal(t, tt.want.response, string(userResult))
+		})
+	}
+}
 
 func Test_handler_FetchURLs_Success(t *testing.T) {
 	type want struct {

@@ -93,10 +93,10 @@ func (mr *MockurlRepositoryMockRecorder) FetchURLs(ctx, userID interface{}) *gom
 }
 
 // Get mocks base method.
-func (m *MockurlRepository) Get(ctx context.Context, urlID string) (models.UserURL, error) {
+func (m *MockurlRepository) Get(ctx context.Context, urlID string) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", ctx, urlID)
-	ret0, _ := ret[0].(models.UserURL)
+	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

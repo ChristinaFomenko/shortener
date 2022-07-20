@@ -16,7 +16,7 @@ const idLength int64 = 5
 
 type urlRepository interface {
 	Add(ctx context.Context, urlID, url, userID string) error
-	Get(ctx context.Context, urlID string) (models.UserURL, error)
+	Get(ctx context.Context, urlID string) (string, error)
 	FetchURLs(ctx context.Context, userID string) ([]models.UserURL, error)
 	AddBatch(ctx context.Context, urls []models.UserURL, userID string) error
 	DeleteUserURLs(ctx context.Context, userID string, urls []string) error
@@ -69,19 +69,17 @@ func (s *service) Shorten(ctx context.Context, url, userID string) (string, erro
 
 // Return by id
 
-func (s *service) Expand(ctx context.Context, urlID string) (models.UserURL, error) {
+func (s *service) Expand(ctx context.Context, urlID string) (string, error) {
 	url, err := s.repository.Get(ctx, urlID)
 	if err != nil {
 		if errors.Is(err, errs.ErrURLNotFound) {
-			return models.UserURL{}, errs.ErrURLNotFound
+			return "", errs.ErrURLNotFound
 		}
 		log.WithError(err).WithField("urlID", urlID).Error("get url error")
-		return models.UserURL{}, err
+		return "", err
 	}
 
-	return models.UserURL{
-		ShortURL: url.ShortURL,
-	}, nil
+	return url, nil
 }
 
 func (s *service) FetchURLs(ctx context.Context, userID string) ([]models.UserURL, error) {
@@ -138,22 +136,22 @@ func (s *service) buildShortURL(id string) string {
 }
 
 func (s *service) DeleteUserURLs(ctx context.Context, userID string, urls []string) error {
-	//usr, err := s.repository.Get(ctx, userID)
-	//if err != nil {
-	//	log.WithError(err).
-	//		WithField("userID", userID).
-	//		Error("get userID error")
-	//	return err
-	//}
-	//
-	//err = s.repository.DeleteUserURLs(ctx, usr, urls)
-	//if err != nil {
-	//	log.WithError(err).
-	//		WithField("userID", usr).
-	//		WithField("urls", urls).
-	//		Error("delete user urls error")
-	//	return err
-	//}
-	//
+	usr, err := s.repository.Get(ctx, userID)
+	if err != nil {
+		log.WithError(err).
+			WithField("userID", userID).
+			Error("get userID error")
+		return err
+	}
+
+	err = s.repository.DeleteUserURLs(ctx, usr, urls)
+	if err != nil {
+		log.WithError(err).
+			WithField("userID", usr).
+			WithField("urls", urls).
+			Error("delete user urls error")
+		return err
+	}
+
 	return nil
 }
