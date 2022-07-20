@@ -11,7 +11,7 @@ import (
 
 type Repo interface {
 	Add(ctx context.Context, urlID, url, userID string) error
-	Get(ctx context.Context, urlID string) (string, error)
+	Get(ctx context.Context, urlID string) (models.UserURL, error)
 	FetchURLs(ctx context.Context, userID string) ([]models.UserURL, error)
 	Ping(ctx context.Context) error
 	AddBatch(ctx context.Context, urls []models.UserURL, userID string) error

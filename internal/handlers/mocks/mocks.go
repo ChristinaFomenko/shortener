@@ -50,10 +50,10 @@ func (mr *MockserviceMockRecorder) DeleteUserURLs(ctx, userID, urls interface{})
 }
 
 // Expand mocks base method.
-func (m *Mockservice) Expand(ctx context.Context, id string) (string, error) {
+func (m *Mockservice) Expand(ctx context.Context, id string) (models.UserURL, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Expand", ctx, id)
-	ret0, _ := ret[0].(string)
+	ret0, _ := ret[0].(models.UserURL)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

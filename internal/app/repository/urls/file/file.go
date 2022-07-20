@@ -76,17 +76,25 @@ func (r *fileRepository) Add(_ context.Context, urlID, url, userID string) error
 }
 
 // Get URL
-func (r *fileRepository) Get(_ context.Context, urlID string) (string, error) {
+func (r *fileRepository) Get(_ context.Context, urlID string) (models.UserURL, error) {
 	r.ma.RLock()
 	defer r.ma.RUnlock()
 
 	for _, userStore := range r.store {
-		if url, ok := userStore[urlID]; ok {
-			return url, nil
+		if _, ok := userStore[urlID]; ok {
+			return models.UserURL{}, nil
 		}
 	}
 
-	return "", errs.ErrURLNotFound
+	var deleted bool
+	if r.store[urlID][string(rune(1))] == "true" {
+		deleted = true
+	}
+
+	return models.UserURL{
+		OriginalURL: r.store[urlID][string(rune(0))],
+		IsDeleted:   deleted,
+	}, errs.ErrURLNotFound
 }
 
 func (r *fileRepository) FetchURLs(_ context.Context, userID string) ([]models.UserURL, error) {
